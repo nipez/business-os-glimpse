@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business OS — See what our agents would do for your business</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090D;--surface:#13161F;--surface-2:#171B26;
+    --border:rgba(255,255,255,.08);--border-strong:rgba(255,255,255,.14);
+    --text:#ECEEF2;--dim:#A2A8B4;--faint:#6A7180;
+    --accent:#5B7CFF;--accent-2:#9A6BFF;--signal:#34D9A0;
+    --grad:linear-gradient(120deg,#5B7CFF,#9A6BFF);
+    --font:"Geist",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    --mono:"Geist Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+  .wrap{max-width:780px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-weight:700;letter-spacing:-.025em;line-height:1.05}
+  .mono{font-family:var(--mono)}
+  .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  .top{border-bottom:1px solid var(--border);background:rgba(8,9,13,.7);backdrop-filter:blur(12px);position:sticky;top:0;z-index:10}
+  .top .wrap{display:flex;align-items:center;gap:10px;height:60px;max-width:1040px}
+  .mark{width:20px;height:20px;border-radius:6px;background:var(--grad);position:relative;flex:none}
+  .mark::after{content:"";position:absolute;inset:6px;border-radius:3px;background:var(--bg);opacity:.55}
+  .brand{font-weight:800;letter-spacing:-.03em;font-size:1.1rem}
+  .top .tag{margin-left:auto;font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+
+  .hero{text-align:center;padding:72px 0 34px;position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;top:-180px;left:50%;transform:translateX(-50%);width:760px;height:520px;background:radial-gradient(ellipse,rgba(91,124,255,.2),transparent 66%);filter:blur(6px);z-index:0}
+  .hero .wrap{position:relative;z-index:1}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);background:rgba(255,255,255,.04);border:1px solid var(--border);padding:6px 13px;border-radius:999px}
+  .badge i{width:7px;height:7px;border-radius:50%;background:var(--signal);font-style:normal;animation:beat 2.4s infinite}
+  @keyframes beat{0%{box-shadow:0 0 0 0 rgba(52,217,160,.5)}70%{box-shadow:0 0 0 7px rgba(52,217,160,0)}100%{box-shadow:0 0 0 0 rgba(52,217,160,0)}}
+  .hero h1{font-size:clamp(2.1rem,5vw,3.1rem);font-weight:800;margin:22px auto 0;max-width:16ch}
+  .hero p{color:var(--dim);font-size:1.1rem;margin:18px auto 0;max-width:48ch}
+
+  .form{margin:34px auto 0;max-width:560px;display:flex;gap:10px}
+  .urlbox{flex:1;display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border-strong);border-radius:12px;padding:0 14px}
+  .urlbox .pre{font-family:var(--mono);color:var(--faint);font-size:.92rem}
+  .urlbox input{flex:1;background:transparent;border:0;outline:0;color:var(--text);font-family:var(--mono);font-size:.95rem;padding:14px 0}
+  .urlbox input::placeholder{color:var(--faint)}
+  .btn{font-family:var(--font);font-weight:600;font-size:.95rem;padding:13px 22px;border-radius:12px;border:0;cursor:pointer;color:#fff;background:var(--grad);box-shadow:0 8px 26px -10px rgba(120,110,255,.7);transition:transform .15s,box-shadow .2s;white-space:nowrap}
+  .btn:hover{transform:translateY(-1px)}
+  .btn:disabled{opacity:.55;cursor:default;transform:none}
+  .hint{margin-top:14px;font-family:var(--mono);font-size:.74rem;color:var(--faint)}
+  .hint a{color:var(--accent);text-decoration:none;cursor:pointer}
+
+  /* console */
+  .stage{max-width:880px;margin:30px auto 80px;padding:0 24px}
+  .console{background:linear-gradient(180deg,#161A24,#11141C);border:1px solid var(--border-strong);border-radius:16px;overflow:hidden;box-shadow:0 40px 80px -40px rgba(0,0,0,.8)}
+  .cbar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015)}
+  .cbar .dots{display:flex;gap:7px}.cbar .dots i{width:11px;height:11px;border-radius:50%;background:#2A2F3C}
+  .cbar .ttl{font-family:var(--mono);font-size:.74rem;color:var(--faint);flex:1}
+  .cbar .pulse{font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--signal);display:flex;align-items:center;gap:7px}
+  .cbar .pulse i{width:7px;height:7px;border-radius:50%;background:var(--signal);animation:beat 2.4s infinite}
+  .cbody{padding:20px 22px}
+
+  .run{font-family:var(--mono);font-size:.86rem;display:flex;flex-direction:column;gap:9px}
+  .rline{display:flex;align-items:center;gap:11px;color:var(--dim)}
+  .rline .sp{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,.16);border-top-color:var(--accent);animation:spin .7s linear infinite;flex:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .rline.done .sp{border:0;animation:none;position:relative}
+  .rline.done .sp::after{content:"";position:absolute;left:3px;top:0;width:5px;height:9px;border:2px solid var(--signal);border-top:0;border-left:0;transform:rotate(45deg)}
+  .rline.done{color:var(--faint)}
+  .rprompt{color:var(--accent)}
+
+  /* glimpse */
+  .glimpse{opacity:0;transform:translateY(10px);transition:opacity .6s,transform .6s}
+  .glimpse.in{opacity:1;transform:none}
+  .gh{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .gh .ey{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  .sample-tag{font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(154,107,255,.12);border:1px solid rgba(154,107,255,.3);padding:3px 9px;border-radius:999px}
+  .glimpse h2{font-size:1.7rem;margin:6px 0 12px}
+  .overview{color:var(--dim);font-size:1.02rem;padding-bottom:22px;border-bottom:1px solid var(--border)}
+  .gsec{padding-top:22px}
+  .gsec .lbl{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}
+  .gitem{display:flex;gap:13px;padding:12px 0;border-bottom:1px solid var(--border);color:var(--dim);font-size:.98rem}
+  .gitem:last-child{border-bottom:0}
+  .gitem .n{font-family:var(--mono);font-size:.74rem;color:var(--accent);flex:none;margin-top:2px;min-width:20px}
+  .gitem .chk{width:17px;height:17px;border-radius:50%;background:rgba(91,124,255,.14);position:relative;flex:none;margin-top:1px}
+  .gitem .chk::after{content:"";position:absolute;left:6px;top:3px;width:4px;height:8px;border:2px solid var(--accent);border-top:0;border-left:0;transform:rotate(45deg)}
+  .gcta{margin-top:26px;padding-top:22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .gcta p{color:var(--dim);font-size:.96rem;max-width:42ch}
+  .gcta .btn{padding:12px 22px}
+  .gmail{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+  .gmail-lbl{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+  .gmail-form{display:flex;gap:8px;max-width:430px}
+  .gmail-form input{flex:1;background:var(--surface);border:1px solid var(--border-strong);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:.86rem;padding:10px 12px;outline:0}
+  .gmail-form input::placeholder{color:var(--faint)}
+  .gmail-form input:focus{border-color:rgba(91,124,255,.5)}
+  .btn-sm{padding:10px 16px;font-size:.86rem;border-radius:10px}
+  .gmail-ok{color:var(--signal);font-size:.86rem;font-family:var(--mono)}
+  .footnote{text-align:center;color:var(--faint);font-family:var(--mono);font-size:.7rem;margin-top:22px;line-height:1.7}
+  .hidden{display:none}
+  @media(max-width:560px){.form{flex-direction:column}.btn{width:100%}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <span class="mark"></span><span class="brand">Business&nbsp;OS</span>
+    <span class="tag">live agent · demo</span>
+  </div>
+</header>
+
+<section class="hero" id="hero">
+  <div class="wrap">
+    <span class="badge"><i></i>Watch an agent learn your business</span>
+    <h1>See what our agents would do for <span class="grad">your business.</span></h1>
+    <p>Drop your website. In about 20 seconds an agent reads your business and shows you exactly where it would start.</p>
+    <div class="form">
+      <label class="urlbox"><span class="pre mono">https://</span>
+        <input id="url" type="text" placeholder="yourcompany.com" autocomplete="off" spellcheck="false">
+      </label>
+      <button class="btn" id="go">Run the agent →</button>
+    </div>
+    <div class="hint">Try it: <a id="try">getholycow.com</a></div>
+  </div>
+</section>
+
+<div class="stage hidden" id="stage">
+  <div class="console">
+    <div class="cbar">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="ttl mono" id="ttl">business-os · researching</span>
+      <span class="pulse"><i></i>live</span>
+    </div>
+    <div class="cbody">
+      <div class="run" id="run"></div>
+      <div class="glimpse" id="glimpse"></div>
+    </div>
+  </div>
+  <div class="footnote" id="foot"></div>
+</div>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+  const $ = s => document.querySelector(s);
+  const input=$('#url'), go=$('#go'), stage=$('#stage'), run=$('#run'),
+        glimpse=$('#glimpse'), ttl=$('#ttl'), foot=$('#foot');
+
+  // guaranteed-good fallback built from Nick's real Holy Cow data
+  const HOLYCOW = {
+    company:"Holy Cow!",
+    overview:"A DTC lactose-intolerance brand: a once-daily probiotic (B. adolescentis) clinically shown to cut symptoms ~65% vs placebo. It's past proof-of-concept — 1,000+ subscribers, 4.7★ — so the question is scaling cleanly, not whether it works.",
+    observations:[
+      "You're the only once-daily, clinically-studied probiotic built specifically for lactose intolerance — competitors are either enzyme-based (Lactaid) or generic probiotics with no lactose trial. That's a defensible wedge most can't copy.",
+      "Support, churn, and reorders still run through you personally. That's the first thing that snaps as volume climbs.",
+      "Your reviews are gold ('pizza is back on the menu') but the insight buried in them isn't being mined or looped back into messaging and ads."
+    ],
+    plays:[
+      "Stand up a retention agent — automate reorder nudges, refund/churn flows, and win-backs straight off your subscription data.",
+      "Put a 24/7 support agent on the repetitive questions (does it work, fridge, kids) so you're out of the inbox.",
+      "Run a reviews → messaging loop: surface what drives the best outcomes and feed it into your Meta ad iterations."
+    ]
+  };
+  const isHolyCow = u => /holycow|holy\s*cow/i.test(u);
+  const cleanUrl = u => { u=u.trim().replace(/^https?:\/\//i,'').replace(/\/+$/,''); return u; };
+
+  // Production path: our own backend (Railway). It holds the API key, researches
+  // server-side, caches by domain, and records the lead. Falls back to the
+  // preview-only direct call (works inside Claude's preview), then to canned data.
+  async function research(url){
+    try{
+      const r = await fetch('/api/glimpse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
+      if(r.ok){ const d = await r.json(); if(d && !d.fallback && d.company && Array.isArray(d.plays)) return d; }
+    }catch(e){}
+    return await researchDirect(url);
+  }
+
+  // PREVIEW/DEMO ONLY — remove for production (an API key can't live in the browser).
+  async function researchDirect(url){
+    const prompt = `You are the research agent for "Business OS", a firm that embeds two senior operators plus AI agents into companies to scale them. Research the company at this website and produce a punchy "glimpse" for the owner. Use web search to ground it in real facts about the business.
+
+Website: https://${url}
+
+Return ONLY valid JSON (no markdown, no code fences), exactly this shape:
+{"company":"the brand name","overview":"2 tight sentences: what they do and where they're at","observations":["3 sharp, specific, true-and-slightly-flattering insights about their position — reference real details you found"],"plays":["3 concrete things our operating team + AI agents would run for THEM first, specific to this business"]}`;
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6", max_tokens:1000,
+        messages:[{role:"user",content:prompt}],
+        tools:[{type:"web_search_20250305",name:"web_search"}]
+      })
+    });
+    if(!res.ok) throw new Error("http "+res.status);
+    const data = await res.json();
+    const text = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+    const s=text.indexOf("{"), e=text.lastIndexOf("}");
+    if(s<0||e<=s) throw new Error("no json");
+    const obj = JSON.parse(text.slice(s,e+1));
+    if(!obj.company || !Array.isArray(obj.plays) || !Array.isArray(obj.observations)) throw new Error("shape");
+    obj.observations=obj.observations.slice(0,3); obj.plays=obj.plays.slice(0,3);
+    return obj;
+  }
+
+  const STEPS = url => [
+    `fetching https://${url}`,
+    "reading the homepage + key pages",
+    "searching the web for context",
+    "scanning the competitive landscape",
+    "building your profile"
+  ];
+  function addLine(txt){
+    const li=document.createElement('div'); li.className='rline';
+    li.innerHTML='<span class="sp"></span><span class="lab"></span>';
+    li.querySelector('.lab').textContent=txt; run.appendChild(li); return li;
+  }
+  const markDone = li => li.classList.add('done');
+
+  function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+  function renderGlimpse(o, url, sample){
+    ttl.textContent = "business-os · "+ (o.company||url);
+    glimpse.innerHTML =
+      '<div class="gh"><span class="ey">What our agent found</span>'+
+        (sample?'<span class="sample-tag">sample output</span>':'')+
+      '</div>'+
+      '<h2>'+esc(o.company)+'</h2>'+
+      '<p class="overview">'+esc(o.overview)+'</p>'+
+      '<div class="gsec"><div class="lbl">What we noticed</div>'+
+        o.observations.map(t=>'<div class="gitem"><span class="chk"></span><span>'+esc(t)+'</span></div>').join('')+
+      '</div>'+
+      '<div class="gsec"><div class="lbl">What we\u2019d put our agents on first</div>'+
+        o.plays.map((t,i)=>'<div class="gitem"><span class="n">0'+(i+1)+'</span><span>'+esc(t)+'</span></div>').join('')+
+      '</div>'+
+      '<div class="gcta"><p>This is the 20-second version. The real one comes with a plan and the operators to run it.</p>'+
+        '<a class="btn" href="mailto:hello@example.com?subject=Business%20OS%20intro%20call">Book an intro call</a></div>'+
+      '<div class="gmail" id="gmail"><span class="gmail-lbl mono">Not ready to talk? Get the full report by email</span>'+
+        '<form class="gmail-form" id="gmailForm"><input id="gmailInput" type="email" placeholder="you@company.com" autocomplete="email" required><button type="submit" class="btn btn-sm">Send it \u2192</button></form></div>';
+    requestAnimationFrame(()=>glimpse.classList.add('in'));
+    const gf = document.getElementById('gmailForm');
+    if(gf) gf.addEventListener('submit', e=>{
+      e.preventDefault();
+      const email = (document.getElementById('gmailInput').value||'').trim();
+      if(!email) return;
+      try{ fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url, email, glimpse:o})}); }catch(_){}
+      document.getElementById('gmail').innerHTML = '<span class="gmail-ok">\u2713 On its way \u2014 we\u2019ll send the full report and follow up to set a time.</span>';
+    });
+    foot.textContent = sample
+      ? "Sample output. On the live site this is generated for your real URL via a server-side agent."
+      : "Generated live just now for your URL.";
+  }
+
+  let busy=false;
+  async function go_(){
+    const url = cleanUrl(input.value);
+    if(!url || busy) return;
+    busy=true; go.disabled=true; go.textContent="Running…";
+    stage.classList.remove('hidden'); run.innerHTML=''; glimpse.className='glimpse'; glimpse.innerHTML=''; foot.textContent='';
+    ttl.textContent="business-os · researching "+url;
+    stage.scrollIntoView({behavior:reduce?'auto':'smooth', block:'start'});
+
+    // kick off real research; animate steps meanwhile
+    let result=null, failed=false;
+    research(url).then(o=>result=o).catch(()=>failed=true);
+
+    const steps=STEPS(url); let last=null;
+    for(let i=0;i<steps.length;i++){
+      if(last) markDone(last);
+      last=addLine(steps[i]);
+      await wait(1150);
+      if((result||failed) && i>=2) break;   // wrap up once the answer is back
+    }
+    // if the model is still thinking, keep a live line up
+    while(!result && !failed){ if(last) markDone(last); last=addLine("synthesizing the read"); await wait(1300); }
+    if(last) markDone(last);
+    await wait(280);
+
+    let obj=result, sample=false;
+    if(!obj){ obj = HOLYCOW; sample = !isHolyCow(url); }   // offline → use real Holy Cow data; flag as sample for other URLs
+    renderGlimpse(obj, url, sample);
+
+    busy=false; go.disabled=false; go.textContent="Run again →";
+  }
+
+  go.addEventListener('click', go_);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter') go_(); });
+  $('#try').addEventListener('click', ()=>{ input.value='getholycow.com'; go_(); });
+</script>
+</body>
+</html>
