@@ -111,10 +111,13 @@
   .glimpse-line.done .sp{border:0;animation:none;position:relative}
   .glimpse-line.done .sp::after{content:"";position:absolute;left:3px;top:0;width:5px;height:9px;border:2px solid var(--signal);border-top:0;border-left:0;transform:rotate(45deg)}
   .glimpse-line.done{color:var(--faint)}
-  .glimpse-result{opacity:0;transform:translateY(10px);transition:opacity .6s,transform .6s}
+  .glimpse-result{opacity:0;transform:translateY(10px);margin-top:28px;padding-top:24px;border-top:1px solid var(--border);transition:opacity .6s,transform .6s}
   .glimpse-result.in{opacity:1;transform:none}
-  .glimpse-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-  .glimpse-head .ey{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  .glimpse-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .presenter{display:flex;align-items:center;gap:12px}
+  .presenter img{width:42px;height:42px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.18);box-shadow:0 0 0 2px rgba(91,124,255,.34),0 10px 24px -14px rgba(0,0,0,.8);flex:none}
+  .presenter .ey{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+  .presenter b{font-family:var(--font-display);font-size:1rem;color:var(--text);letter-spacing:-.01em}
   .sample-tag{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(154,107,255,.12);border:1px solid rgba(154,107,255,.3);padding:3px 9px;border-radius:999px}
   .glimpse-result h2{font-size:1.7rem;margin:6px 0 12px}
   .glimpse-overview{color:var(--dim);font-size:1.02rem;padding-bottom:22px;border-bottom:1px solid var(--border)}
@@ -886,10 +889,13 @@
   }
   const markDone = li => li.classList.add('done');
   function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+  const haigAvatar = document.querySelector('img[alt="Haig"]')?.getAttribute('src') || '';
   function renderGlimpse(o, url, sample){
     ttl.textContent = "business-os · "+ (o.company||url);
     glimpse.innerHTML =
-      '<div class="glimpse-head"><span class="ey">What our agent found</span>'+
+      '<div class="glimpse-head"><div class="presenter">'+
+        (haigAvatar?'<img src="'+haigAvatar+'" alt="Haig">':'')+
+        '<span><span class="ey">Haig</span><b>Here\u2019s what we found:</b></span></div>'+
         (sample?'<span class="sample-tag">sample output</span>':'')+
       '</div>'+
       '<h2>'+esc(o.company)+'</h2>'+
