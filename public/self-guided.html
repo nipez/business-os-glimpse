@@ -33,6 +33,8 @@
   .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
   .lede{max-width:63ch;margin:24px auto 0;color:var(--dim);font-size:clamp(1.05rem,1.7vw,1.22rem)}
   .hero-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:28px}
+  .expectations{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:24px auto 0;max-width:820px}
+  .expectations span{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);border:1px solid var(--border);border-radius:999px;padding:8px 11px;background:rgba(255,255,255,.025)}
   .product{padding:42px 0 84px}
   .grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(420px,1.1fr);gap:22px;align-items:start}
   .panel{background:linear-gradient(180deg,#151A25,#10141D);border:1px solid var(--border2);border-radius:16px;box-shadow:0 40px 80px -52px rgba(0,0,0,.9);overflow:hidden}
@@ -42,6 +44,9 @@
   .body{padding:22px}
   .intro h2,.result h2{font-family:var(--display);font-size:1.7rem;letter-spacing:-.02em}
   .intro p{color:var(--dim);margin-top:12px}
+  .no-team{display:grid;place-items:center;margin:20px 0;padding:28px;border:1px solid rgba(233,162,59,.26);border-radius:14px;background:linear-gradient(135deg,rgba(233,162,59,.12),rgba(154,107,255,.06))}
+  .no-team strong{font-family:var(--display);font-size:2rem;letter-spacing:-.03em}
+  .no-team span{font-family:var(--mono);font-size:.72rem;color:var(--warn);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
   .chips{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
   .chips span{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border:1px solid var(--border);border-radius:999px;padding:7px 10px}
   form{display:grid;gap:13px}
@@ -85,9 +90,14 @@
 <main>
   <section class="hero">
     <div class="wrap">
-      <span class="badge"><i></i>Self-guided backend build</span>
-      <h1>Build your backend OS without waiting on a consultant.</h1>
-      <p class="lede">Answer the operating questions. Get a practical backend map, first automations, stack recommendations, and a week-one build order you can execute yourself.</p>
+      <span class="badge"><i></i>1 founder. 0 extra hires. Backend OS.</span>
+      <h1>Build the backend your business should have hired for.</h1>
+      <p class="lede">Drop in the messy reality of your business. Get a practical operating map, first automations, stack recommendations, and a week-one build order you can execute yourself.</p>
+      <div class="expectations">
+        <span>No extra team</span>
+        <span>No consultant delay</span>
+        <span>AI-guided build plan</span>
+      </div>
       <div class="hero-actions">
         <a class="btn" href="#builder">Start the builder</a>
         <a class="btn secondary" href="/">Need operators?</a>
@@ -100,10 +110,12 @@
       <aside class="panel intro">
         <div class="panel-head"><span>Business OS mini backend</span><span class="live"><i></i>beta</span></div>
         <div class="body">
-          <h2>For founders who want the system, not the hand-holding.</h2>
-          <p>This is the self-guided lane: turn scattered tools, manual follow-ups, and founder-only decisions into a backend plan you can start building today.</p>
+          <h2>For founders who want the AI co-founder feel without the fantasy claims.</h2>
+          <p>This is the self-guided lane: turn scattered tools, manual follow-ups, and founder-only decisions into a backend operating plan you can start building today.</p>
+          <div class="no-team"><strong>No team required</strong><span>system first, headcount later</span></div>
           <div class="chips">
             <span>Agents plus operators</span>
+            <span>0 extra hires</span>
             <span>Self-guided</span>
             <span>Backend map</span>
             <span>Week-one actions</span>
