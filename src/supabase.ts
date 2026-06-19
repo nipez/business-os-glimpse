@@ -5,6 +5,7 @@ type LeadInsert = {
   domain: string
   url?: string
   email?: string
+  phone?: string
   ip?: string
   user_agent?: string
   glimpse?: Glimpse | Record<string, unknown>
@@ -127,6 +128,7 @@ export async function attachEmailToLead(lead: LeadInsert & { email: string }) {
       .from('leads')
       .update({
         email: lead.email,
+        phone: lead.phone,
         url: lead.url,
         ip: lead.ip,
         user_agent: lead.user_agent,

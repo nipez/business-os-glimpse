@@ -5,6 +5,7 @@ create table leads (
   domain text not null,
   url text,
   email text,
+  phone text,
   ip text,
   user_agent text,
   glimpse jsonb,

@@ -15,6 +15,7 @@ const app = new Hono()
 
 const DOMAIN_RE = /^(?!-)(?:[a-z0-9-]{1,63}\.)+[a-z]{2,63}$/i
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PHONE_RE = /^[0-9+().\-\s]{7,32}$/
 
 function clientIp(c: Context) {
   const forwarded = c.req.header('x-forwarded-for')?.split(',')[0]?.trim()
@@ -100,7 +101,7 @@ app.post('/api/glimpse', async (c) => {
 })
 
 app.post('/api/lead', async (c) => {
-  let body: { url?: unknown; email?: unknown; glimpse?: unknown }
+  let body: { url?: unknown; email?: unknown; phone?: unknown; glimpse?: unknown }
   try {
     body = await c.req.json()
   } catch {
@@ -113,6 +114,9 @@ app.post('/api/lead', async (c) => {
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
   if (!EMAIL_RE.test(email)) return c.json({ error: 'Invalid email' }, 400)
 
+  const phone = typeof body.phone === 'string' ? body.phone.trim() : ''
+  if (phone && !PHONE_RE.test(phone)) return c.json({ error: 'Invalid phone' }, 400)
+
   const ip = clientIp(c)
   const userAgent = c.req.header('user-agent') ?? ''
 
@@ -124,6 +128,7 @@ app.post('/api/lead', async (c) => {
       domain: normalized.domain,
       url: normalized.url,
       email,
+      phone: phone || undefined,
       ip,
       user_agent: userAgent,
       glimpse:

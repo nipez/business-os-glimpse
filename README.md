@@ -42,3 +42,9 @@ PORT=3000
 7. Point a custom domain at the Railway service when ready.
 
 Keep Anthropic and Supabase keys in Railway environment variables only. No API key belongs in client code.
+
+If you already ran the schema before phone capture was added, run this once in the Supabase SQL editor:
+
+```sql
+alter table leads add column if not exists phone text;
+```
