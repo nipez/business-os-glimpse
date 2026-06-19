@@ -134,14 +134,22 @@ app.post('/api/glimpse', async (c) => {
 
     const cached = await getCache(normalized.domain)
     if (cached) {
-      await insertLead({
-        domain: normalized.domain,
-        url: normalized.url,
-        ip,
-        user_agent: userAgent,
-        glimpse: cached,
-      })
-      return c.json(cached)
+      if (!looksDomainGrounded(normalized.domain, cached)) {
+        console.error('cached glimpse failed domain grounding check', {
+          domain: normalized.domain,
+          company: cached.company,
+        })
+        await deleteCache(normalized.domain)
+      } else {
+        await insertLead({
+          domain: normalized.domain,
+          url: normalized.url,
+          ip,
+          user_agent: userAgent,
+          glimpse: cached,
+        })
+        return c.json(cached)
+      }
     }
 
     let glimpse

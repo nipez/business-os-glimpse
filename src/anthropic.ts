@@ -10,12 +10,46 @@ export type Glimpse = {
 const MODEL = 'claude-sonnet-4-6'
 const WEB_SEARCH_TOOL_TYPE = 'web_search_20250305'
 
-function promptFor(url: string) {
+async function fetchHomepageText(url: string) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 8000)
+
+  try {
+    const response = await fetch(`https://${url}`, {
+      signal: controller.signal,
+      headers: {
+        'user-agent': 'BusinessOS-Glimpse/1.0',
+      },
+    })
+
+    if (!response.ok) return ''
+
+    const html = await response.text()
+    return html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 5000)
+  } catch {
+    return ''
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+function promptFor(url: string, homepageText: string) {
   return `You are the research agent for "Business OS", a firm that embeds two senior operators
 plus AI agents into companies to scale them. Research the company at this website and
 produce a punchy "glimpse" for the owner. Use web search to ground it in real facts.
 
 Website: https://${url}
+
+Exact-domain homepage text:
+${homepageText || '(Homepage text unavailable. Use web search, but only facts tied to the exact domain.)'}
 
 Critical accuracy rules:
 - Identify the company from the exact domain above first. Do not substitute a different
@@ -27,6 +61,8 @@ Critical accuracy rules:
   ignore the conflicting source.
 - The overview, observations, and plays must be specific to the business on this exact
   domain, not a similarly named business.
+- If the exact-domain homepage text indicates a different category than a search result,
+  the search result is for the wrong company and must be ignored.
 
 Return ONLY valid JSON (no markdown, no code fences), exactly this shape:
 {"company":"the brand name",
@@ -97,10 +133,11 @@ export async function research(url: string): Promise<Glimpse> {
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set')
 
   const anthropic = new Anthropic({ apiKey })
+  const homepageText = await fetchHomepageText(url)
   const response = await anthropic.messages.create({
     model: MODEL,
     max_tokens: 1000,
-    messages: [{ role: 'user', content: promptFor(url) }],
+    messages: [{ role: 'user', content: promptFor(url, homepageText) }],
     tools: [{ type: WEB_SEARCH_TOOL_TYPE, name: 'web_search' } as any],
   })
 
