@@ -233,7 +233,7 @@
 
     // kick off real research; animate steps meanwhile
     let result=null, failed=false;
-    research(url).then(o=>result=o).catch(()=>failed=true);
+    research(url).then(o=>{ if(o) result=o; else failed=true; }).catch(()=>failed=true);
 
     const steps=STEPS(url); let last=null;
     for(let i=0;i<steps.length;i++){
