@@ -88,10 +88,11 @@
   .gcta{margin-top:26px;padding-top:22px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
   .gcta p{color:var(--dim);font-size:.96rem;max-width:42ch}
   .gcta .btn{padding:12px 22px}
-  .gmail{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+  .gmail{margin-top:26px;padding-top:22px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:12px}
   .gmail-lbl{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
-  .gmail-form{display:flex;gap:8px;max-width:620px;flex-wrap:wrap}
-  .gmail-form input{flex:1 1 190px;background:var(--surface);border:1px solid var(--border-strong);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:.86rem;padding:10px 12px;outline:0}
+  .gmail-copy{color:var(--dim);font-size:.96rem;max-width:54ch}
+  .gmail-form{display:flex;gap:8px;max-width:720px;flex-wrap:wrap}
+  .gmail-form input{flex:1 1 210px;background:var(--surface);border:1px solid var(--border-strong);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:.86rem;padding:12px;outline:0}
   .gmail-form input::placeholder{color:var(--faint)}
   .gmail-form input:focus{border-color:rgba(91,124,255,.5)}
   .btn-sm{padding:10px 16px;font-size:.86rem;border-radius:10px}
@@ -204,17 +205,16 @@
       '<div class="gsec"><div class="lbl">What we\u2019d put our agents on first</div>'+
         o.plays.map((t,i)=>'<div class="gitem"><span class="n">0'+(i+1)+'</span><span>'+esc(t)+'</span></div>').join('')+
       '</div>'+
-      '<div class="gcta"><p>This is the 20-second version. The real one comes with a plan and the operators to run it.</p>'+
-        '<a class="btn" href="mailto:hello@example.com?subject=Business%20OS%20intro%20call">Book an intro call</a></div>'+
-      '<div class="gmail" id="gmail"><span class="gmail-lbl mono">Or send me this plan</span>'+
-        '<form class="gmail-form" id="gmailForm"><input id="gmailInput" type="email" placeholder="you@company.com" autocomplete="email" required><input id="phoneInput" type="tel" placeholder="phone optional" autocomplete="tel"><button type="submit" class="btn btn-sm">Send it \u2192</button></form></div>';
+      '<div class="gmail" id="gmail"><span class="gmail-lbl mono">Send me my plan</span>'+
+        '<p class="gmail-copy">Get the full version of this read, the 3 plays we\u2019d run first, and a practical next step from the operators behind Business OS.</p>'+
+        '<form class="gmail-form" id="gmailForm"><input id="gmailInput" type="email" placeholder="you@company.com" autocomplete="email" required><input id="phoneInput" type="tel" placeholder="phone number" autocomplete="tel" required><button type="submit" class="btn btn-sm">Send my plan \u2192</button></form></div>';
     requestAnimationFrame(()=>glimpse.classList.add('in'));
     const gf = document.getElementById('gmailForm');
     if(gf) gf.addEventListener('submit', e=>{
       e.preventDefault();
       const email = (document.getElementById('gmailInput').value||'').trim();
       const phone = (document.getElementById('phoneInput').value||'').trim();
-      if(!email) return;
+      if(!email || !phone) return;
       try{ fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url, email, phone, glimpse:o})}); }catch(_){}
       document.getElementById('gmail').innerHTML = '<span class="gmail-ok">\u2713 On its way \u2014 we\u2019ll send the full report and follow up to set a time.</span>';
     });

@@ -115,7 +115,7 @@ app.post('/api/lead', async (c) => {
   if (!EMAIL_RE.test(email)) return c.json({ error: 'Invalid email' }, 400)
 
   const phone = typeof body.phone === 'string' ? body.phone.trim() : ''
-  if (phone && !PHONE_RE.test(phone)) return c.json({ error: 'Invalid phone' }, 400)
+  if (!PHONE_RE.test(phone)) return c.json({ error: 'Invalid phone' }, 400)
 
   const ip = clientIp(c)
   const userAgent = c.req.header('user-agent') ?? ''
@@ -128,7 +128,7 @@ app.post('/api/lead', async (c) => {
       domain: normalized.domain,
       url: normalized.url,
       email,
-      phone: phone || undefined,
+      phone,
       ip,
       user_agent: userAgent,
       glimpse:
