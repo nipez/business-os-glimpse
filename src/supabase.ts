@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import WebSocket from 'ws'
-import type { Glimpse } from './anthropic.js'
+import type { Glimpse, SelfGuidedInput, SelfGuidedPlan } from './anthropic.js'
 
 export const GLIMPSE_CACHE_VERSION = 2
 
@@ -12,6 +12,13 @@ type LeadInsert = {
   ip?: string
   user_agent?: string
   glimpse?: Glimpse | Record<string, unknown>
+}
+
+type SelfGuidedPlanInsert = SelfGuidedInput & {
+  email?: string
+  ip?: string
+  user_agent?: string
+  plan: SelfGuidedPlan
 }
 
 let supabase: SupabaseClient | null = null
@@ -169,6 +176,27 @@ export async function attachEmailToLead(lead: LeadInsert & { email: string }) {
   await insertLead(lead)
 }
 
+export async function insertSelfGuidedPlan(input: SelfGuidedPlanInsert) {
+  const client = requireSupabase()
+
+  const { error } = await client.from('self_guided_plans').insert({
+    business_name: input.businessName,
+    website: input.website,
+    email: input.email,
+    stage: input.stage,
+    team_size: input.teamSize,
+    tools: input.tools,
+    bottleneck: input.bottleneck,
+    goal: input.goal,
+    owner: input.owner,
+    ip: input.ip,
+    user_agent: input.user_agent,
+    plan: input.plan,
+  })
+
+  if (error) throw error
+}
+
 export async function getAdminSnapshot() {
   const client = requireSupabase()
 
@@ -188,8 +216,17 @@ export async function getAdminSnapshot() {
 
   if (cacheError) throw cacheError
 
+  const { data: selfGuided, error: selfGuidedError } = await client
+    .from('self_guided_plans')
+    .select('id, business_name, website, email, stage, team_size, tools, bottleneck, goal, owner, ip, user_agent, plan, created_at')
+    .order('created_at', { ascending: false })
+    .limit(500)
+
+  if (selfGuidedError) throw selfGuidedError
+
   const rows = leads ?? []
   const cacheRows = cache ?? []
+  const selfGuidedRows = selfGuided ?? []
   const domainMap = new Map<string, {
     domain: string
     runs: number
@@ -230,6 +267,8 @@ export async function getAdminSnapshot() {
   const domainRuns = rows.length
   const uniqueDomains = new Set(rows.map((row) => row.domain)).size
   const contactSubmits = rows.filter((row) => row.email && row.phone).length
+  const selfGuidedPlans = selfGuidedRows.length
+  const selfGuidedEmails = selfGuidedRows.filter((row) => row.email).length
 
   return {
     summary: {
@@ -239,11 +278,15 @@ export async function getAdminSnapshot() {
       submit_rate: domainRuns ? contactSubmits / domainRuns : 0,
       cached_domains: cacheRows.length,
       repeat_runs: domainRuns - uniqueDomains,
+      self_guided_plans: selfGuidedPlans,
+      self_guided_emails: selfGuidedEmails,
+      self_guided_email_rate: selfGuidedPlans ? selfGuidedEmails / selfGuidedPlans : 0,
     },
     domains: [...domainMap.values()].sort((a, b) => {
       return String(b.last_entered_at ?? b.cached_at ?? '').localeCompare(String(a.last_entered_at ?? a.cached_at ?? ''))
     }),
     leads: rows,
     cache: cacheRows,
+    self_guided: selfGuidedRows,
   }
 }

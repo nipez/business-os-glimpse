@@ -12,6 +12,7 @@ import {
   getAdminSnapshot,
   getCache,
   insertLead,
+  insertSelfGuidedPlan,
   setCache,
 } from './supabase.js'
 
@@ -80,6 +81,12 @@ function selfGuidedInput(body: Record<string, unknown>): SelfGuidedInput | null 
   }
 
   return input
+}
+
+function optionalEmail(input: unknown) {
+  const email = typeof input === 'string' ? input.trim().toLowerCase() : ''
+  if (!email) return ''
+  return EMAIL_RE.test(email) ? email : null
 }
 
 function tokenize(value: string) {
@@ -282,14 +289,26 @@ app.post('/api/self-guided-plan', async (c) => {
 
   const input = selfGuidedInput(body)
   if (!input) return c.json({ error: 'Missing required fields' }, 400)
+  const email = optionalEmail(body.email)
+  if (email === null) return c.json({ error: 'Invalid email' }, 400)
 
   const ip = clientIp(c)
+  const userAgent = c.req.header('user-agent') ?? ''
 
   try {
     const allowed = await checkRateLimit(ip)
     if (!allowed) return c.json({ error: 'Rate limit exceeded' }, 429)
 
-    return c.json(await buildSelfGuidedPlan(input))
+    const plan = await buildSelfGuidedPlan(input)
+    await insertSelfGuidedPlan({
+      ...input,
+      email: email || undefined,
+      ip,
+      user_agent: userAgent,
+      plan,
+    })
+
+    return c.json(plan)
   } catch (error) {
     console.error('self-guided plan failed', error)
     return c.json({ error: 'Unable to build plan' }, 500)
