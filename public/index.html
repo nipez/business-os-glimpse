@@ -75,19 +75,6 @@
   .badge{display:inline-flex;align-items:center;gap:9px;font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);background:rgba(255,255,255,.04);border:1px solid var(--border);padding:7px 14px;border-radius:999px}
   .badge .live{width:7px;height:7px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 0 rgba(52,217,160,.55);animation:beat 2.4s infinite}
   @keyframes beat{0%{box-shadow:0 0 0 0 rgba(52,217,160,.5)}70%{box-shadow:0 0 0 8px rgba(52,217,160,0)}100%{box-shadow:0 0 0 0 rgba(52,217,160,0)}}
-  .adoption-gap{width:min(620px,100%);margin:0 auto 24px;padding:16px 18px 14px;background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
-  .gap-label{display:flex;align-items:center;justify-content:space-between;gap:14px;font-family:var(--font-mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:11px}
-  .gap-label .now{color:var(--signal)}
-  .gap-chart{position:relative;height:74px;border-bottom:1px solid rgba(255,255,255,.12);border-left:1px solid rgba(255,255,255,.08);overflow:hidden}
-  .gap-chart::before{content:"";position:absolute;left:0;right:0;top:34px;border-top:1px dashed rgba(255,255,255,.1)}
-  .gap-line{position:absolute;left:5%;right:5%;height:3px;border-radius:999px;transform-origin:left center}
-  .gap-line.adopt{bottom:16px;background:linear-gradient(90deg,#34D9A0,#9A6BFF);transform:rotate(-14deg);box-shadow:0 0 18px rgba(52,217,160,.35)}
-  .gap-line.wait{bottom:25px;background:rgba(255,255,255,.32);transform:rotate(4deg)}
-  .gap-dot{position:absolute;right:4%;width:9px;height:9px;border-radius:50%}
-  .gap-dot.adopt{top:10px;background:var(--signal);box-shadow:0 0 0 6px rgba(52,217,160,.12)}
-  .gap-dot.wait{bottom:22px;background:var(--faint)}
-  .gap-caption{display:flex;justify-content:space-between;gap:14px;margin-top:12px;font-size:.82rem;color:var(--dim)}
-  .gap-caption b{color:var(--text)}
   .hero h1{font-size:clamp(2.6rem,6.4vw,4.6rem);font-weight:800;max-width:16ch;margin:26px auto 0}
   .hero .lede{font-size:clamp(1.05rem,1.7vw,1.24rem);color:var(--dim);max-width:62ch;margin:26px auto 0}
   .hero .lede b{color:var(--text);font-weight:600}
@@ -332,7 +319,6 @@
     .glimpse-form .btn{width:100%}
     .capacity-hero{align-items:flex-start;text-align:left}
     .capacity-hero .main{display:block}
-    .gap-caption{flex-direction:column;text-align:left}
   }
   @media (prefers-reduced-motion:reduce){
     *{animation:none!important}
@@ -367,16 +353,7 @@
   <!-- HERO -->
   <section class="hero">
     <div class="wrap">
-      <div class="adoption-gap" aria-label="AI adoption gap">
-        <div class="gap-label"><span>AI adoption curve</span><span class="now">2026 window</span></div>
-        <div class="gap-chart">
-          <span class="gap-line adopt"></span>
-          <span class="gap-line wait"></span>
-          <span class="gap-dot adopt"></span>
-          <span class="gap-dot wait"></span>
-        </div>
-        <div class="gap-caption"><span><b>Adopters compound</b> with agents running daily work.</span><span>Waiters keep scaling by headcount.</span></div>
-      </div>
+      <span class="badge"><span class="live"></span>AI adoption is compounding now</span>
       <h1>If you’re reading this, <span class="grad-text">your competitors are already pulling away.</span></h1>
       <p class="lede">AI execution is compounding now. We embed two senior operators plus the agents that run the day-to-day, so your company starts moving faster before the gap gets permanent.</p>
       <div class="glimpse-lab" id="glimpse-lab">
