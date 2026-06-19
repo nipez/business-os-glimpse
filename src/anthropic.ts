@@ -7,6 +7,27 @@ export type Glimpse = {
   plays: [string, string, string]
 }
 
+export type SelfGuidedInput = {
+  businessName: string
+  website?: string
+  stage: string
+  teamSize: string
+  tools: string
+  bottleneck: string
+  goal: string
+  owner: string
+}
+
+export type SelfGuidedPlan = {
+  title: string
+  diagnosis: string
+  backend: [string, string, string]
+  automations: [string, string, string]
+  buildOrder: [string, string, string, string]
+  firstWeek: [string, string, string]
+  stack: [string, string, string]
+}
+
 const MODEL = 'claude-sonnet-4-6'
 const WEB_SEARCH_TOOL_TYPE = 'web_search_20250305'
 
@@ -71,6 +92,35 @@ Return ONLY valid JSON (no markdown, no code fences), exactly this shape:
  "plays":["3 concrete things our operating team + AI agents would run for THEM first, specific to this business"]}`
 }
 
+function selfGuidedPrompt(input: SelfGuidedInput) {
+  return `You are designing a self-guided backend operating system build for a founder.
+The product is Business OS Self-Guided: it gives founders a practical build plan they
+can execute without hiring hands-on operators.
+
+Business:
+- Name: ${input.businessName}
+- Website: ${input.website || 'not provided'}
+- Stage/revenue: ${input.stage}
+- Team size: ${input.teamSize}
+- Current tools: ${input.tools}
+- Biggest bottleneck: ${input.bottleneck}
+- 90-day goal: ${input.goal}
+- Main owner/user: ${input.owner}
+
+Write like a senior operator and product builder. Be specific, but do not pretend to
+know details the founder did not provide. The plan should feel premium, clear, and
+more useful than a generic automation checklist.
+
+Return ONLY valid JSON (no markdown, no code fences), exactly this shape:
+{"title":"short name for the build",
+ "diagnosis":"2 tight sentences on what their backend is missing and why it matters",
+ "backend":["3 backend modules they need, each specific and concrete"],
+ "automations":["3 automations or agent workflows to build first"],
+ "buildOrder":["4 ordered implementation steps, written as commands"],
+ "firstWeek":["3 concrete actions they can complete this week"],
+ "stack":["3 recommended tool/data layers or system components"]}`
+}
+
 function asTriple(value: unknown): [string, string, string] | null {
   if (!Array.isArray(value) || value.length < 3) return null
 
@@ -128,6 +178,71 @@ function parseGlimpse(content: unknown[]): Glimpse {
   }
 }
 
+function parseSelfGuidedPlan(content: unknown[]): SelfGuidedPlan {
+  const text = content
+    .filter((block): block is { type: string; text: string } => {
+      return (
+        typeof block === 'object' &&
+        block !== null &&
+        'type' in block &&
+        'text' in block &&
+        block.type === 'text' &&
+        typeof block.text === 'string'
+      )
+    })
+    .map((block) => block.text)
+    .join('\n')
+
+  const start = text.indexOf('{')
+  const end = text.lastIndexOf('}')
+  if (start < 0 || end <= start) throw new Error('Anthropic response did not include JSON')
+
+  const parsed = JSON.parse(text.slice(start, end + 1)) as {
+    title?: unknown
+    diagnosis?: unknown
+    backend?: unknown
+    automations?: unknown
+    buildOrder?: unknown
+    firstWeek?: unknown
+    stack?: unknown
+  }
+
+  const backend = asTriple(parsed.backend)
+  const automations = asTriple(parsed.automations)
+  const firstWeek = asTriple(parsed.firstWeek)
+  const stack = asTriple(parsed.stack)
+  const buildOrder =
+    Array.isArray(parsed.buildOrder) &&
+    parsed.buildOrder.length >= 4 &&
+    parsed.buildOrder.slice(0, 4).every((item) => typeof item === 'string' && item.trim())
+      ? (parsed.buildOrder.slice(0, 4) as [string, string, string, string])
+      : null
+
+  if (
+    typeof parsed.title !== 'string' ||
+    !parsed.title.trim() ||
+    typeof parsed.diagnosis !== 'string' ||
+    !parsed.diagnosis.trim() ||
+    !backend ||
+    !automations ||
+    !buildOrder ||
+    !firstWeek ||
+    !stack
+  ) {
+    throw new Error('Anthropic response did not match self-guided plan shape')
+  }
+
+  return {
+    title: parsed.title,
+    diagnosis: parsed.diagnosis,
+    backend,
+    automations,
+    buildOrder,
+    firstWeek,
+    stack,
+  }
+}
+
 export async function research(url: string): Promise<Glimpse> {
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set')
@@ -142,4 +257,18 @@ export async function research(url: string): Promise<Glimpse> {
   })
 
   return parseGlimpse(response.content as unknown[])
+}
+
+export async function buildSelfGuidedPlan(input: SelfGuidedInput): Promise<SelfGuidedPlan> {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set')
+
+  const anthropic = new Anthropic({ apiKey })
+  const response = await anthropic.messages.create({
+    model: MODEL,
+    max_tokens: 1200,
+    messages: [{ role: 'user', content: selfGuidedPrompt(input) }],
+  })
+
+  return parseSelfGuidedPlan(response.content as unknown[])
 }

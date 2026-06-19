@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Hono } from 'hono'
 import type { Context } from 'hono'
-import { research } from './anthropic.js'
+import { buildSelfGuidedPlan, research, type SelfGuidedInput } from './anthropic.js'
 import {
   attachEmailToLead,
   checkRateLimit,
@@ -50,6 +50,38 @@ function normalizeUrl(input: unknown) {
   return { domain, url: domain }
 }
 
+function textField(input: unknown, maxLength = 500) {
+  if (typeof input !== 'string') return ''
+  return input.trim().replace(/\s+/g, ' ').slice(0, maxLength)
+}
+
+function selfGuidedInput(body: Record<string, unknown>): SelfGuidedInput | null {
+  const input = {
+    businessName: textField(body.businessName, 120),
+    website: textField(body.website, 160),
+    stage: textField(body.stage, 180),
+    teamSize: textField(body.teamSize, 80),
+    tools: textField(body.tools, 500),
+    bottleneck: textField(body.bottleneck, 500),
+    goal: textField(body.goal, 360),
+    owner: textField(body.owner, 160),
+  }
+
+  if (
+    !input.businessName ||
+    !input.stage ||
+    !input.teamSize ||
+    !input.tools ||
+    !input.bottleneck ||
+    !input.goal ||
+    !input.owner
+  ) {
+    return null
+  }
+
+  return input
+}
+
 function tokenize(value: string) {
   return value
     .toLowerCase()
@@ -85,6 +117,11 @@ function isAdmin(c: Context) {
 
 app.get('/admin', async (c) => {
   const html = await readFile(join(process.cwd(), 'public', 'admin.html'), 'utf8')
+  return c.html(html)
+})
+
+app.get('/self-guided', async (c) => {
+  const html = await readFile(join(process.cwd(), 'public', 'self-guided.html'), 'utf8')
   return c.html(html)
 })
 
@@ -232,6 +269,30 @@ app.post('/api/lead', async (c) => {
   } catch (error) {
     console.error('lead route failed', error)
     return c.json({ error: 'Unable to capture lead' }, 500)
+  }
+})
+
+app.post('/api/self-guided-plan', async (c) => {
+  let body: Record<string, unknown>
+  try {
+    body = await c.req.json()
+  } catch {
+    return c.json({ error: 'Invalid JSON' }, 400)
+  }
+
+  const input = selfGuidedInput(body)
+  if (!input) return c.json({ error: 'Missing required fields' }, 400)
+
+  const ip = clientIp(c)
+
+  try {
+    const allowed = await checkRateLimit(ip)
+    if (!allowed) return c.json({ error: 'Rate limit exceeded' }, 429)
+
+    return c.json(await buildSelfGuidedPlan(input))
+  } catch (error) {
+    console.error('self-guided plan failed', error)
+    return c.json({ error: 'Unable to build plan' }, 500)
   }
 })
 

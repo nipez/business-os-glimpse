@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business OS Self-Guided</title>
+<meta name="description" content="Build your own backend operating system with an AI-guided implementation plan.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#07090D;--bg2:#0B0E14;--surface:#121722;--surface2:#171C28;--border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);--text:#F4F6FB;--dim:#A7ADBB;--faint:#697181;--accent:#667DFF;--accent2:#9A6BFF;--signal:#34D9A0;--warn:#E9A23B;--grad:linear-gradient(135deg,var(--accent),var(--accent2));--font:Inter,system-ui,sans-serif;--display:"Space Grotesk",Inter,sans-serif;--mono:"IBM Plex Mono",monospace}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--font);background:radial-gradient(ellipse at 50% -10%,rgba(91,124,255,.2),transparent 45%),var(--bg);color:var(--text);line-height:1.5}
+  a{color:inherit}
+  .wrap{width:min(1120px,calc(100% - 44px));margin:0 auto}
+  .nav{position:sticky;top:0;z-index:10;background:rgba(7,9,13,.82);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
+  .nav-inner{height:68px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:1.14rem;text-decoration:none}
+  .mark{width:22px;height:22px;border-radius:7px;background:var(--grad);box-shadow:0 8px 24px -8px rgba(120,110,255,.85);position:relative;flex:none}
+  .mark:after{content:"";position:absolute;inset:6px;border-radius:3px;background:#080A0F;opacity:.55}
+  .nav a:not(.brand){color:var(--dim);text-decoration:none;font-size:.92rem}
+  .nav a:not(.brand):hover{color:var(--text)}
+  .nav-links{display:flex;gap:24px;align-items:center}
+  .btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:12px;padding:13px 18px;font-weight:800;color:#fff;background:var(--grad);box-shadow:0 18px 38px -22px rgba(91,124,255,.9);cursor:pointer;text-decoration:none}
+  .btn.secondary{background:rgba(255,255,255,.045);border:1px solid var(--border2);box-shadow:none;color:var(--text)}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .hero{padding:82px 0 34px;text-align:center}
+  .badge{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--border);background:rgba(255,255,255,.04);border-radius:999px;padding:7px 14px;font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+  .badge i{width:7px;height:7px;border-radius:50%;background:var(--signal);box-shadow:0 0 14px 2px rgba(52,217,160,.45);font-style:normal}
+  h1{font-family:var(--display);font-size:clamp(2.6rem,6vw,5.1rem);line-height:.96;letter-spacing:-.035em;max-width:14ch;margin:24px auto 0}
+  .grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{max-width:63ch;margin:24px auto 0;color:var(--dim);font-size:clamp(1.05rem,1.7vw,1.22rem)}
+  .hero-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:28px}
+  .product{padding:42px 0 84px}
+  .grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(420px,1.1fr);gap:22px;align-items:start}
+  .panel{background:linear-gradient(180deg,#151A25,#10141D);border:1px solid var(--border2);border-radius:16px;box-shadow:0 40px 80px -52px rgba(0,0,0,.9);overflow:hidden}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+  .live{display:flex;align-items:center;gap:8px;color:var(--signal)}
+  .live i{width:7px;height:7px;border-radius:50%;background:var(--signal);font-style:normal}
+  .body{padding:22px}
+  .intro h2,.result h2{font-family:var(--display);font-size:1.7rem;letter-spacing:-.02em}
+  .intro p{color:var(--dim);margin-top:12px}
+  .chips{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+  .chips span{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border:1px solid var(--border);border-radius:999px;padding:7px 10px}
+  form{display:grid;gap:13px}
+  label{display:grid;gap:7px;color:var(--dim);font-size:.88rem;font-weight:700}
+  input,textarea,select{width:100%;border:1px solid var(--border2);background:#0E131D;color:var(--text);border-radius:11px;padding:12px 13px;font:inherit;outline:0}
+  textarea{min-height:92px;resize:vertical}
+  input:focus,textarea:focus,select:focus{border-color:rgba(91,124,255,.65)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  .form-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:5px}
+  .small{font-family:var(--mono);font-size:.72rem;color:var(--faint)}
+  .result{min-height:628px}
+  .empty{display:grid;place-items:center;min-height:530px;color:var(--faint);text-align:center;border:1px dashed var(--border);border-radius:14px;padding:24px}
+  .output{display:none}
+  .output.in{display:block}
+  .diagnosis{color:var(--dim);font-size:1.02rem;margin:12px 0 22px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+  .section{padding:18px 0;border-bottom:1px solid var(--border)}
+  .section:last-child{border-bottom:0}
+  .section .label{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  ol,ul{display:grid;gap:10px;list-style:none}
+  li{color:var(--dim);display:flex;gap:11px}
+  li b{font-family:var(--mono);font-size:.75rem;color:var(--accent);min-width:22px}
+  .error{color:#ffb4b4;font-family:var(--mono);font-size:.78rem}
+  .loading{display:none;color:var(--dim);font-family:var(--mono);font-size:.86rem}
+  .loading.in{display:block}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}.nav-links{display:none}.hero{padding-top:58px}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="/"><span class="mark"></span>Business OS</a>
+    <nav class="nav-links">
+      <a href="/">Operator-led</a>
+      <a href="#builder">Builder</a>
+      <a href="/">Back to site</a>
+    </nav>
+    <a class="btn secondary" href="/">Get operator help</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <span class="badge"><i></i>Self-guided backend build</span>
+      <h1>Build your backend OS without waiting on a consultant.</h1>
+      <p class="lede">Answer the operating questions. Get a practical backend map, first automations, stack recommendations, and a week-one build order you can execute yourself.</p>
+      <div class="hero-actions">
+        <a class="btn" href="#builder">Start the builder</a>
+        <a class="btn secondary" href="/">Need operators?</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="product" id="builder">
+    <div class="wrap grid">
+      <aside class="panel intro">
+        <div class="panel-head"><span>Business OS mini backend</span><span class="live"><i></i>beta</span></div>
+        <div class="body">
+          <h2>For founders who want the system, not the hand-holding.</h2>
+          <p>This is the self-guided lane: turn scattered tools, manual follow-ups, and founder-only decisions into a backend plan you can start building today.</p>
+          <div class="chips">
+            <span>Agents plus operators</span>
+            <span>Self-guided</span>
+            <span>Backend map</span>
+            <span>Week-one actions</span>
+          </div>
+        </div>
+      </aside>
+
+      <section class="panel">
+        <div class="panel-head"><span>Intake</span><span class="live"><i></i>guided</span></div>
+        <div class="body">
+          <form id="buildForm">
+            <div class="row">
+              <label>Business name<input name="businessName" placeholder="R3VY" required></label>
+              <label>Website<input name="website" placeholder="yourcompany.com"></label>
+            </div>
+            <div class="row">
+              <label>Stage / revenue<select name="stage" required>
+                <option value="">Choose one</option>
+                <option>Pre-revenue / validating</option>
+                <option>Early revenue under $500k</option>
+                <option>$500k-$2M and messy</option>
+                <option>$2M+ and founder bottlenecked</option>
+              </select></label>
+              <label>Team size<select name="teamSize" required>
+                <option value="">Choose one</option>
+                <option>Solo founder</option>
+                <option>2-5 people</option>
+                <option>6-15 people</option>
+                <option>16+ people</option>
+              </select></label>
+            </div>
+            <label>Current tools<textarea name="tools" placeholder="Shopify, Stripe, HubSpot, Airtable, Slack, Notion..." required></textarea></label>
+            <label>Biggest backend bottleneck<textarea name="bottleneck" placeholder="Leads fall through cracks, delivery is manual, reporting is messy..." required></textarea></label>
+            <label>90-day goal<textarea name="goal" placeholder="What should the system make easier, faster, or more reliable?" required></textarea></label>
+            <label>Main owner/user<input name="owner" placeholder="Founder, ops lead, sales lead..." required></label>
+            <div class="form-actions">
+              <button class="btn" id="submitBtn" type="submit">Build my backend plan -></button>
+              <span class="small">No client-side API key. Generated server-side.</span>
+            </div>
+            <div class="error" id="error"></div>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel result" style="grid-column:1 / -1">
+        <div class="panel-head"><span>Generated backend OS</span><span class="live"><i></i>output</span></div>
+        <div class="body">
+          <div class="empty" id="empty">Your backend blueprint appears here after the intake runs.</div>
+          <div class="loading" id="loading">Designing your backend map...</div>
+          <div class="output" id="output"></div>
+        </div>
+      </section>
+    </div>
+  </section>
+</main>
+
+<script>
+  const form = document.getElementById('buildForm');
+  const btn = document.getElementById('submitBtn');
+  const error = document.getElementById('error');
+  const empty = document.getElementById('empty');
+  const loading = document.getElementById('loading');
+  const output = document.getElementById('output');
+  const esc = value => String(value || '').replace(/[&<>]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[char]));
+  const list = items => items.map((item, index) => '<li><b>'+String(index + 1).padStart(2,'0')+'</b><span>'+esc(item)+'</span></li>').join('');
+
+  function render(plan){
+    output.innerHTML = '<h2>'+esc(plan.title)+'</h2>'+
+      '<p class="diagnosis">'+esc(plan.diagnosis)+'</p>'+
+      '<div class="section"><div class="label">Backend modules</div><ol>'+list(plan.backend || [])+'</ol></div>'+
+      '<div class="section"><div class="label">First automations</div><ol>'+list(plan.automations || [])+'</ol></div>'+
+      '<div class="section"><div class="label">Build order</div><ol>'+list(plan.buildOrder || [])+'</ol></div>'+
+      '<div class="section"><div class="label">This week</div><ol>'+list(plan.firstWeek || [])+'</ol></div>'+
+      '<div class="section"><div class="label">Suggested stack</div><ol>'+list(plan.stack || [])+'</ol></div>';
+    output.classList.add('in');
+  }
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    error.textContent = '';
+    output.classList.remove('in');
+    empty.style.display = 'none';
+    loading.classList.add('in');
+    btn.disabled = true;
+    btn.textContent = 'Building...';
+
+    const body = Object.fromEntries(new FormData(form).entries());
+    try {
+      const response = await fetch('/api/self-guided-plan', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Unable to build plan');
+      render(data);
+    } catch (err) {
+      empty.style.display = 'grid';
+      error.textContent = err.message || 'Unable to build plan';
+    } finally {
+      loading.classList.remove('in');
+      btn.disabled = false;
+      btn.textContent = 'Build my backend plan ->';
+      document.querySelector('.result').scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  });
+</script>
+</body>
+</html>
