@@ -8,6 +8,7 @@ import { research } from './anthropic.js'
 import {
   attachEmailToLead,
   checkRateLimit,
+  deleteCache,
   getAdminSnapshot,
   getCache,
   insertLead,
@@ -49,6 +50,26 @@ function normalizeUrl(input: unknown) {
   return { domain, url: domain }
 }
 
+function tokenize(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/\.[a-z]{2,}$/i, '')
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length >= 4)
+}
+
+function looksDomainGrounded(domain: string, glimpse: { company: string; overview: string }) {
+  const domainTokens = tokenize(domain)
+  const responseText = `${glimpse.company} ${glimpse.overview}`.toLowerCase()
+  const compactDomain = domain.toLowerCase().replace(/\.[a-z]{2,}$/i, '').replace(/[^a-z0-9]/g, '')
+  const compactCompany = glimpse.company.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+  return (
+    domainTokens.some((token) => responseText.includes(token)) ||
+    (compactCompany.length >= 4 && compactDomain.includes(compactCompany))
+  )
+}
+
 function isAdmin(c: Context) {
   const password = process.env.ADMIN_PASSWORD
   if (!password) return false
@@ -68,6 +89,28 @@ app.get('/api/admin/snapshot', async (c) => {
   } catch (error) {
     console.error('admin snapshot failed', error)
     return c.json({ error: 'Unable to load admin snapshot' }, 500)
+  }
+})
+
+app.post('/api/admin/cache/delete', async (c) => {
+  if (!isAdmin(c)) return c.json({ error: 'Unauthorized' }, 401)
+
+  let body: { url?: unknown }
+  try {
+    body = await c.req.json()
+  } catch {
+    return c.json({ error: 'Invalid JSON' }, 400)
+  }
+
+  const normalized = normalizeUrl(body.url)
+  if (!normalized) return c.json({ error: 'Invalid URL' }, 400)
+
+  try {
+    await deleteCache(normalized.domain)
+    return c.json({ ok: true })
+  } catch (error) {
+    console.error('admin cache delete failed', error)
+    return c.json({ error: 'Unable to delete cache' }, 500)
   }
 })
 
@@ -106,6 +149,14 @@ app.post('/api/glimpse', async (c) => {
       glimpse = await research(normalized.url)
     } catch (error) {
       console.error('research failed', error)
+      return c.json({ fallback: true })
+    }
+
+    if (!looksDomainGrounded(normalized.domain, glimpse)) {
+      console.error('research failed domain grounding check', {
+        domain: normalized.domain,
+        company: glimpse.company,
+      })
       return c.json({ fallback: true })
     }
 

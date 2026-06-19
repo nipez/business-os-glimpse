@@ -107,6 +107,13 @@ export async function setCache(domain: string, glimpse: Glimpse) {
   if (error) throw error
 }
 
+export async function deleteCache(domain: string) {
+  const client = requireSupabase()
+
+  const { error } = await client.from('glimpse_cache').delete().eq('domain', domain)
+  if (error) throw error
+}
+
 export async function insertLead(lead: LeadInsert) {
   const client = requireSupabase()
 

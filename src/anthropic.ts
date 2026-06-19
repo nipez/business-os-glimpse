@@ -17,6 +17,17 @@ produce a punchy "glimpse" for the owner. Use web search to ground it in real fa
 
 Website: https://${url}
 
+Critical accuracy rules:
+- Identify the company from the exact domain above first. Do not substitute a different
+  company with a similar name.
+- If web search finds multiple companies with the same or similar brand name, use only
+  facts that clearly refer to https://${url} or pages that explicitly mention this exact
+  domain.
+- If a fact conflicts with the website at https://${url}, trust the exact website and
+  ignore the conflicting source.
+- The overview, observations, and plays must be specific to the business on this exact
+  domain, not a similarly named business.
+
 Return ONLY valid JSON (no markdown, no code fences), exactly this shape:
 {"company":"the brand name",
  "overview":"2 tight sentences: what they do and where they're at",

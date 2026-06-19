@@ -20,6 +20,7 @@
   input{background:#0F121A;border:1px solid var(--border);color:var(--text);border-radius:9px;padding:11px 12px;font-family:var(--mono);outline:0}
   input:focus{border-color:rgba(91,124,255,.55)}
   button{border:0;border-radius:9px;background:var(--grad);color:#fff;font-weight:700;padding:11px 16px;cursor:pointer}
+  .mini{padding:7px 10px;font-size:.75rem;background:#242938;color:var(--dim);border:1px solid var(--border)}
   .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
   .card{padding:16px}
   .card .lbl{font-family:var(--mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
@@ -62,7 +63,7 @@
     <section class="section">
       <h2>Domains</h2>
       <div class="table-wrap"><table>
-        <thead><tr><th>Domain</th><th>Runs</th><th>Submits</th><th>Ratio</th><th>Latest Contact</th><th>Cached</th><th>Last Entered</th></tr></thead>
+        <thead><tr><th>Domain</th><th>Runs</th><th>Submits</th><th>Ratio</th><th>Latest Contact</th><th>Cached</th><th>Last Entered</th><th>Action</th></tr></thead>
         <tbody id="domains"></tbody>
       </table></div>
     </section>
@@ -93,10 +94,13 @@
     }, null, 2);
   };
 
+  let adminPassword = "";
+
   $("#login").addEventListener("submit", async e => {
     e.preventDefault();
     $("#error").textContent = "";
     const password = $("#password").value;
+    adminPassword = password;
     try{
       const r = await fetch("/api/admin/snapshot", {headers: {"x-admin-password": password}});
       if(!r.ok) throw new Error(r.status === 401 ? "Wrong admin password" : "Unable to load dashboard");
@@ -129,8 +133,27 @@
         <td>${d.latest_email ? `${esc(d.latest_email)}<br><span class="muted">${esc(d.latest_phone)}</span>` : "—"}</td>
         <td>${d.cached_at ? `<span class="pill">cached</span><br><span class="muted">${fmtDate(d.cached_at)}</span>` : "—"}</td>
         <td>${fmtDate(d.last_entered_at)}</td>
+        <td>${d.cached_at ? `<button class="mini" data-clear="${esc(d.domain)}">Clear cache</button>` : "—"}</td>
       </tr>`;
     }).join("");
+
+    document.querySelectorAll("[data-clear]").forEach(btn => btn.addEventListener("click", async () => {
+      const domain = btn.getAttribute("data-clear");
+      btn.textContent = "Clearing...";
+      btn.disabled = true;
+      try{
+        const r = await fetch("/api/admin/cache/delete", {
+          method:"POST",
+          headers: {"Content-Type":"application/json","x-admin-password": adminPassword},
+          body: JSON.stringify({url: domain})
+        });
+        if(!r.ok) throw new Error("Unable to clear cache");
+        btn.textContent = "Cleared";
+      }catch(err){
+        btn.textContent = "Failed";
+        btn.disabled = false;
+      }
+    }));
 
     $("#leads").innerHTML = data.leads.map(l => `<tr>
       <td>${fmtDate(l.created_at)}</td>
