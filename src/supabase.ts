@@ -146,3 +146,82 @@ export async function attachEmailToLead(lead: LeadInsert & { email: string }) {
 
   await insertLead(lead)
 }
+
+export async function getAdminSnapshot() {
+  const client = requireSupabase()
+
+  const { data: leads, error: leadsError } = await client
+    .from('leads')
+    .select('id, domain, url, email, phone, ip, user_agent, glimpse, created_at')
+    .order('created_at', { ascending: false })
+    .limit(500)
+
+  if (leadsError) throw leadsError
+
+  const { data: cache, error: cacheError } = await client
+    .from('glimpse_cache')
+    .select('domain, glimpse, created_at')
+    .order('created_at', { ascending: false })
+    .limit(500)
+
+  if (cacheError) throw cacheError
+
+  const rows = leads ?? []
+  const cacheRows = cache ?? []
+  const domainMap = new Map<string, {
+    domain: string
+    runs: number
+    submissions: number
+    last_entered_at?: string
+    last_submitted_at?: string
+    latest_email?: string
+    latest_phone?: string
+    latest_glimpse?: unknown
+    cached_at?: string
+  }>()
+
+  for (const row of rows) {
+    const domain = String(row.domain)
+    const item = domainMap.get(domain) ?? { domain, runs: 0, submissions: 0 }
+    item.runs += 1
+    item.last_entered_at ??= row.created_at
+    item.latest_glimpse ??= row.glimpse
+
+    if (row.email && row.phone) {
+      item.submissions += 1
+      item.last_submitted_at ??= row.created_at
+      item.latest_email ??= row.email
+      item.latest_phone ??= row.phone
+    }
+
+    domainMap.set(domain, item)
+  }
+
+  for (const row of cacheRows) {
+    const domain = String(row.domain)
+    const item = domainMap.get(domain) ?? { domain, runs: 0, submissions: 0 }
+    item.cached_at = row.created_at
+    item.latest_glimpse ??= row.glimpse
+    domainMap.set(domain, item)
+  }
+
+  const domainRuns = rows.length
+  const uniqueDomains = new Set(rows.map((row) => row.domain)).size
+  const contactSubmits = rows.filter((row) => row.email && row.phone).length
+
+  return {
+    summary: {
+      domain_runs: domainRuns,
+      unique_domains: uniqueDomains,
+      contact_submits: contactSubmits,
+      submit_rate: domainRuns ? contactSubmits / domainRuns : 0,
+      cached_domains: cacheRows.length,
+      repeat_runs: domainRuns - uniqueDomains,
+    },
+    domains: [...domainMap.values()].sort((a, b) => {
+      return String(b.last_entered_at ?? b.cached_at ?? '').localeCompare(String(a.last_entered_at ?? a.cached_at ?? ''))
+    }),
+    leads: rows,
+    cache: cacheRows,
+  }
+}

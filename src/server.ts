@@ -1,11 +1,14 @@
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { research } from './anthropic.js'
 import {
   attachEmailToLead,
   checkRateLimit,
+  getAdminSnapshot,
   getCache,
   insertLead,
   setCache,
@@ -45,6 +48,28 @@ function normalizeUrl(input: unknown) {
 
   return { domain, url: domain }
 }
+
+function isAdmin(c: Context) {
+  const password = process.env.ADMIN_PASSWORD
+  if (!password) return false
+  return c.req.header('x-admin-password') === password
+}
+
+app.get('/admin', async (c) => {
+  const html = await readFile(join(process.cwd(), 'public', 'admin.html'), 'utf8')
+  return c.html(html)
+})
+
+app.get('/api/admin/snapshot', async (c) => {
+  if (!isAdmin(c)) return c.json({ error: 'Unauthorized' }, 401)
+
+  try {
+    return c.json(await getAdminSnapshot())
+  } catch (error) {
+    console.error('admin snapshot failed', error)
+    return c.json({ error: 'Unable to load admin snapshot' }, 500)
+  }
+})
 
 app.post('/api/glimpse', async (c) => {
   let body: { url?: unknown }

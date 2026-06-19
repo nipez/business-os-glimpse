@@ -33,6 +33,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 GLIMPSE_CACHE_DAYS=7
 RATE_LIMIT_PER_MIN=5
 RATE_LIMIT_PER_DAY=30
+ADMIN_PASSWORD=
 PORT=3000
 ```
 
@@ -42,6 +43,8 @@ PORT=3000
 7. Point a custom domain at the Railway service when ready.
 
 Keep Anthropic and Supabase keys in Railway environment variables only. No API key belongs in client code.
+
+Open `/admin` and enter `ADMIN_PASSWORD` to view domain runs, contact submissions, conversion ratio, cached domains, and the glimpse JSON returned to users.
 
 If you already ran the schema before phone capture was added, run this once in the Supabase SQL editor:
 
