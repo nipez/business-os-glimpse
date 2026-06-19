@@ -87,6 +87,7 @@
   .capacity b{color:var(--text);font-weight:600}
   .capacity-hero{display:flex;align-items:center;justify-content:center;gap:14px;max-width:620px;margin:22px auto 0;padding:16px 22px;border-radius:14px;background:linear-gradient(120deg,rgba(233,162,59,.15),rgba(154,107,255,.08));border:1px solid rgba(233,162,59,.36);box-shadow:0 18px 46px -32px rgba(233,162,59,.9)}
   .capacity-hero .dot{width:10px;height:10px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 5px rgba(233,162,59,.12),0 0 16px 2px rgba(233,162,59,.62);flex:none}
+  .capacity-copy{display:flex;align-items:baseline;justify-content:center;gap:12px;flex-wrap:wrap}
   .capacity-hero .kicker{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;color:var(--warn)}
   .capacity-hero .main{font-size:1.08rem;color:var(--text);font-weight:700;letter-spacing:-.01em}
   .capacity-hero .main b{color:#fff}
@@ -321,8 +322,9 @@
     .glimpse-form{flex-direction:column}
     .glimpse-form .btn{width:100%}
     .console-shell{display:none}
-    .capacity-hero{align-items:flex-start;text-align:left}
-    .capacity-hero .main{display:block}
+    .capacity-hero{align-items:flex-start;justify-content:flex-start;text-align:left}
+    .capacity-copy{align-items:flex-start;justify-content:flex-start;gap:5px}
+    .capacity-hero .kicker,.capacity-hero .main{display:block;width:100%}
     .mcard,.pcard,.founder{padding:22px}
   }
   @media (prefers-reduced-motion:reduce){
@@ -385,7 +387,7 @@
           <div class="glimpse-foot" id="foot"></div>
         </div>
       </div>
-      <div class="capacity-hero"><span class="dot"></span><span><span class="kicker">Limited capacity</span><span class="main">Only <b>5 client spaces</b> remain for 2026</span></span></div>
+      <div class="capacity-hero"><span class="dot"></span><span class="capacity-copy"><span class="kicker">Limited capacity</span><span class="main">Only <b>5 client spaces</b> remain for 2026</span></span></div>
       <div class="hero-meta">
         <span><i></i>Two senior operators</span>
         <span><i></i>First agent live in 2 weeks</span>
@@ -840,6 +842,10 @@
   const isHolyCow = u => /holycow|holy\s*cow/i.test(u);
   const cleanUrl = u => (u||'').trim().replace(/^https?:\/\//i,'').replace(/^www\./i,'').split(/[/?#]/)[0].replace(/\/+$/,'').toLowerCase();
   const sanitizeInput = () => { input.value = cleanUrl(input.value); };
+  function keepGlimpseInView(){
+    const top = document.getElementById('glimpse-lab').getBoundingClientRect().top + window.scrollY - 96;
+    window.scrollTo({top:Math.max(0, top), behavior:reduce?'auto':'smooth'});
+  }
   function fallbackFor(url){
     if(isHolyCow(url)) return HOLYCOW;
     return {
@@ -919,7 +925,7 @@
     busy=true; go.disabled=true; go.textContent="Running…";
     stage.classList.remove('hidden'); run.innerHTML=''; glimpse.className='glimpse-result'; glimpse.innerHTML=''; foot.textContent='';
     ttl.textContent="business-os · researching "+url;
-    stage.scrollIntoView({behavior:reduce?'auto':'smooth', block:'start'});
+    requestAnimationFrame(keepGlimpseInView);
     let result=null, failed=false;
     research(url).then(o=>{ if(o) result=o; else failed=true; }).catch(()=>failed=true);
     const steps=STEPS(url); let last=null;
