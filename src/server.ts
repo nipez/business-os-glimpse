@@ -64,6 +64,13 @@ function looksDomainGrounded(domain: string, glimpse: { company: string; overvie
   const compactDomain = domain.toLowerCase().replace(/\.[a-z]{2,}$/i, '').replace(/[^a-z0-9]/g, '')
   const compactCompany = glimpse.company.toLowerCase().replace(/[^a-z0-9]/g, '')
 
+  if (
+    domain === 'getholycow.com' &&
+    /\b(beef|rinds|cowhide|snack|jerky|seattle|javan bangs)\b/i.test(responseText)
+  ) {
+    return false
+  }
+
   return (
     domainTokens.some((token) => responseText.includes(token)) ||
     (compactCompany.length >= 4 && compactDomain.includes(compactCompany))

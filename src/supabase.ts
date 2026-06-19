@@ -2,6 +2,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import WebSocket from 'ws'
 import type { Glimpse } from './anthropic.js'
 
+export const GLIMPSE_CACHE_VERSION = 2
+
 type LeadInsert = {
   domain: string
   url?: string
@@ -94,7 +96,13 @@ export async function getCache(domain: string) {
     .maybeSingle()
 
   if (error) throw error
-  return data?.glimpse as Glimpse | null | undefined
+  const glimpse = data?.glimpse as (Glimpse & { _cache_version?: number }) | null | undefined
+  if (!glimpse) return null
+  if (glimpse._cache_version !== GLIMPSE_CACHE_VERSION) {
+    await deleteCache(domain)
+    return null
+  }
+  return glimpse
 }
 
 export async function setCache(domain: string, glimpse: Glimpse) {
@@ -102,7 +110,14 @@ export async function setCache(domain: string, glimpse: Glimpse) {
 
   const { error } = await client
     .from('glimpse_cache')
-    .upsert({ domain, glimpse, created_at: new Date().toISOString() }, { onConflict: 'domain' })
+    .upsert(
+      {
+        domain,
+        glimpse: { ...glimpse, _cache_version: GLIMPSE_CACHE_VERSION },
+        created_at: new Date().toISOString(),
+      },
+      { onConflict: 'domain' },
+    )
 
   if (error) throw error
 }
