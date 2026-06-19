@@ -131,6 +131,13 @@
   .glimpse-item .n{font-family:var(--font-mono);font-size:.74rem;color:var(--accent);flex:none;margin-top:2px;min-width:20px}
   .glimpse-item .chk{width:17px;height:17px;border-radius:50%;background:rgba(91,124,255,.14);position:relative;flex:none;margin-top:1px}
   .glimpse-item .chk::after{content:"";position:absolute;left:6px;top:3px;width:4px;height:8px;border:2px solid var(--accent);border-top:0;border-left:0;transform:rotate(45deg)}
+  .operator-proof{margin-top:26px;padding:18px 20px;border:1px solid rgba(91,124,255,.22);border-radius:14px;background:linear-gradient(120deg,rgba(91,124,255,.08),rgba(154,107,255,.05))}
+  .operator-proof .lbl{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  .operator-proof p{color:var(--dim);font-size:.95rem;max-width:64ch}
+  .operator-proof a{color:var(--text);font-weight:700;text-decoration:none}
+  .operator-proof a:hover{color:var(--accent)}
+  .proof-list{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .proof-list span{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);border:1px solid var(--border);border-radius:999px;padding:6px 10px;background:rgba(255,255,255,.025)}
   .plan-capture{margin-top:26px;padding-top:22px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:12px}
   .plan-capture .lbl{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);font-family:var(--font-mono)}
   .plan-capture p{color:var(--dim);font-size:.96rem;max-width:54ch}
@@ -910,6 +917,9 @@
       '<div class="glimpse-sec"><div class="lbl">What we\u2019d put our agents on first</div>'+
         o.plays.map((t,i)=>'<div class="glimpse-item"><span class="n">0'+(i+1)+'</span><span>'+esc(t)+'</span></div>').join('')+
       '</div>'+
+      '<div class="operator-proof"><div class="lbl">Why us</div>'+
+        '<p>This is built by operators, not tool tourists. <a href="#about">Nick and Haig</a> built R3VY, scaled revenue, and install the operating cadence, automations, and agents that keep founders out of recurring work.</p>'+
+        '<div class="proof-list"><span>Founder-led install</span><span>$30M revenue experience</span><span>Agents plus operators</span></div></div>'+
       '<div class="plan-capture" id="planCapture"><span class="lbl">Send me my plan</span>'+
         '<p>Get the full version of this read, the 3 plays we\u2019d run first, and a practical next step from the operators behind Business OS.</p>'+
         '<form class="plan-form" id="planForm"><input id="planEmail" type="email" placeholder="you@company.com" autocomplete="email" required><input id="planPhone" type="tel" placeholder="phone number" autocomplete="tel" required><button type="submit" class="btn btn-primary">Send my plan \u2192</button></form></div>';
