@@ -190,10 +190,12 @@
   // Production path: our own backend (Railway). It holds the API key, researches
   // server-side, caches by domain, and records the lead.
   async function research(url){
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(), 45000);
     try{
-      const r = await fetch('/api/glimpse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
+      const r = await fetch('/api/glimpse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url}),signal:controller.signal});
       if(r.ok){ const d = await r.json(); if(d && !d.fallback && d.company && Array.isArray(d.plays)) return d; }
-    }catch(e){}
+    }catch(e){} finally { clearTimeout(timeout); }
     return null;
   }
 
@@ -265,7 +267,8 @@
       if((result||failed) && i>=2) break;   // wrap up once the answer is back
     }
     // if the model is still thinking, keep a live line up
-    while(!result && !failed){ if(last) markDone(last); last=addLine("synthesizing the read"); await wait(1300); }
+    if(!result && !failed){ if(last) markDone(last); last=addLine("synthesizing the read"); }
+    while(!result && !failed){ await wait(1300); }
     if(last) markDone(last);
     await wait(280);
 
