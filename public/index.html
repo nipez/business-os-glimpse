@@ -164,7 +164,28 @@
     ]
   };
   const isHolyCow = u => /holycow|holy\s*cow/i.test(u);
-  const cleanUrl = u => { u=u.trim().replace(/^https?:\/\//i,'').replace(/\/+$/,''); return u; };
+  const cleanUrl = u => {
+    u=(u||'').trim().replace(/^https?:\/\//i,'').replace(/^www\./i,'').split(/[/?#]/)[0].replace(/\/+$/,'').toLowerCase();
+    return u;
+  };
+  function sanitizeInput(){ input.value = cleanUrl(input.value); }
+  function fallbackFor(url){
+    if(isHolyCow(url)) return HOLYCOW;
+    return {
+      company:url,
+      overview:"The live research agent couldn't complete this read just now. Leave your details below and our operators can send back the real plan for this business.",
+      observations:[
+        "We have the domain captured, but we don't want to show recycled sample insights for the wrong company.",
+        "The next useful step is a grounded review of the site, market context, and current conversion path.",
+        "Once the agent connection is healthy, this section will populate with company-specific findings."
+      ],
+      plays:[
+        "Run the live research pass again and cache the finished glimpse for this domain.",
+        "Review the site's offer, funnel, and lead capture path for immediate operating leverage.",
+        "Turn the finished read into a short follow-up plan tied to email and phone capture."
+      ]
+    };
+  }
 
   // Production path: our own backend (Railway). It holds the API key, researches
   // server-side, caches by domain, and records the lead.
@@ -249,13 +270,16 @@
     await wait(280);
 
     let obj=result, sample=false;
-    if(!obj){ obj = HOLYCOW; sample = !isHolyCow(url); }   // offline → use real Holy Cow data; flag as sample for other URLs
+    if(!obj){ obj = fallbackFor(url); sample = true; }
     renderGlimpse(obj, url, sample);
 
     busy=false; go.disabled=false; go.textContent="Run again →";
   }
 
   go.addEventListener('click', go_);
+  input.addEventListener('input', sanitizeInput);
+  input.addEventListener('paste', ()=>setTimeout(sanitizeInput, 0));
+  input.addEventListener('blur', sanitizeInput);
   input.addEventListener('keydown', e=>{ if(e.key==='Enter') go_(); });
   $('#try').addEventListener('click', ()=>{ input.value='getholycow.com'; go_(); });
 </script>
