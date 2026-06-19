@@ -12,10 +12,12 @@
     "@anthropic-ai/sdk": "^0.57.0",
     "@hono/node-server": "^1.14.4",
     "@supabase/supabase-js": "^2.50.2",
-    "hono": "^4.8.4"
+    "hono": "^4.8.4",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.7",
+    "@types/ws": "^8.18.1",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   },

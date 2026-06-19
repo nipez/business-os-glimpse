@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import WebSocket from 'ws'
 import type { Glimpse } from './anthropic.js'
 
 type LeadInsert = {
@@ -25,6 +26,9 @@ function requireSupabase() {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
+    },
+    realtime: {
+      transport: WebSocket as never,
     },
   })
 
