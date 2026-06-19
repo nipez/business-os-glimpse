@@ -116,7 +116,10 @@
   .glimpse-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
   .presenter{display:flex;align-items:center;gap:12px}
   .presenter img{width:42px;height:42px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,.18);box-shadow:0 0 0 2px rgba(91,124,255,.34),0 10px 24px -14px rgba(0,0,0,.8);flex:none}
-  .presenter .ey{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+  .presenter-copy{display:flex;flex-direction:column;gap:5px}
+  .presenter .ey{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  .presenter-name{color:var(--accent);text-decoration:none;width:max-content}
+  .presenter-name:hover{color:var(--text)}
   .presenter b{font-family:var(--font-display);font-size:1rem;color:var(--text);letter-spacing:-.01em}
   .sample-tag{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);background:rgba(154,107,255,.12);border:1px solid rgba(154,107,255,.3);padding:3px 9px;border-radius:999px}
   .glimpse-result h2{font-size:1.7rem;margin:6px 0 12px}
@@ -285,7 +288,7 @@
 
   /* about */
   .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:34px}
-  .founder{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px}
+  .founder{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;scroll-margin-top:92px}
   .founder-head{display:flex;align-items:center;gap:17px;margin-bottom:18px}
   .avatar{width:74px;height:74px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,.16);box-shadow:0 0 0 2px rgba(91,124,255,.45),0 10px 24px -10px rgba(0,0,0,.7);flex:none}
   .founder .role{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:5px}
@@ -890,12 +893,13 @@
   const markDone = li => li.classList.add('done');
   function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
   const haigAvatar = document.querySelector('img[alt="Haig"]')?.getAttribute('src') || '';
+  document.querySelector('img[alt="Haig"]')?.closest('.founder')?.setAttribute('id','haig-bio');
   function renderGlimpse(o, url, sample){
     ttl.textContent = "business-os · "+ (o.company||url);
     glimpse.innerHTML =
       '<div class="glimpse-head"><div class="presenter">'+
         (haigAvatar?'<img src="'+haigAvatar+'" alt="Haig">':'')+
-        '<span><span class="ey">Haig</span><b>Here\u2019s what we found:</b></span></div>'+
+        '<span class="presenter-copy"><a class="ey presenter-name" href="#haig-bio">Haig</a><b>Here\u2019s what we found:</b></span></div>'+
         (sample?'<span class="sample-tag">sample output</span>':'')+
       '</div>'+
       '<h2>'+esc(o.company)+'</h2>'+
