@@ -17,6 +17,7 @@
   .mono{font-family:var(--mono)}
   .login,.card,.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px}
   .login{padding:18px;display:flex;gap:10px;align-items:center;max-width:520px}
+  .admin-tools{padding:18px;margin-bottom:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:12px}
   input{background:#0F121A;border:1px solid var(--border);color:var(--text);border-radius:9px;padding:11px 12px;font-family:var(--mono);outline:0}
   input:focus{border-color:rgba(91,124,255,.55)}
   button{border:0;border-radius:9px;background:var(--grad);color:#fff;font-weight:700;padding:11px 16px;cursor:pointer}
@@ -58,6 +59,12 @@
   <div class="error" id="error"></div>
 
   <main id="dashboard" class="hidden">
+    <form class="admin-tools" id="scanUnlock">
+      <input id="scanEmail" type="email" value="nickperez@gmail.com" placeholder="superadmin email" autocomplete="email">
+      <button type="submit">Unlock unlimited scans in this browser</button>
+      <span class="mono muted" id="scanUnlockStatus">Uses your admin password session.</span>
+    </form>
+
     <div class="grid" id="cards"></div>
 
     <section class="section">
@@ -130,6 +137,23 @@
       $("#dashboard").classList.remove("hidden");
     }catch(err){
       $("#error").textContent = err.message || "Unable to load dashboard";
+    }
+  });
+
+  $("#scanUnlock").addEventListener("submit", async e => {
+    e.preventDefault();
+    $("#scanUnlockStatus").textContent = "Unlocking...";
+    try{
+      const r = await fetch("/api/admin/scan-unlock", {
+        method:"POST",
+        headers: {"Content-Type":"application/json","x-admin-password": adminPassword},
+        body: JSON.stringify({email: $("#scanEmail").value})
+      });
+      const data = await r.json().catch(()=>({}));
+      if(!r.ok) throw new Error(data.error || "Unable to unlock scans");
+      $("#scanUnlockStatus").textContent = `Unlimited scans unlocked for ${data.email}.`;
+    }catch(err){
+      $("#scanUnlockStatus").textContent = err.message || "Unable to unlock scans";
     }
   });
 

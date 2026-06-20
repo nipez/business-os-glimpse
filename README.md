@@ -35,6 +35,7 @@ GLIMPSE_UNIQUE_DOMAINS_PER_DAY=2
 RATE_LIMIT_PER_MIN=5
 RATE_LIMIT_PER_DAY=30
 ADMIN_PASSWORD=
+SUPERADMIN_EMAILS=nickperez@gmail.com
 PORT=3000
 ```
 
@@ -46,6 +47,8 @@ PORT=3000
 Keep Anthropic and Supabase keys in Railway environment variables only. No API key belongs in client code.
 
 Open `/admin` and enter `ADMIN_PASSWORD` to view domain runs, contact submissions, conversion ratio, cached domains, and the glimpse JSON returned to users.
+
+Superadmins listed in `SUPERADMIN_EMAILS` can use the `/admin` unlock control to allow unlimited scans in the current browser. The unlock uses a signed, HTTP-only cookie and does not expose any bypass in client code.
 
 If you already ran the schema before phone capture was added, run this once in the Supabase SQL editor:
 

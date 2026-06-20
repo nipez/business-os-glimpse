@@ -3,6 +3,7 @@ import { serveStatic } from '@hono/node-server/serve-static'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Hono } from 'hono'
+import { getSignedCookie, setSignedCookie } from 'hono/cookie'
 import type { Context } from 'hono'
 import { buildSelfGuidedPlan, research, type SelfGuidedInput } from './anthropic.js'
 import {
@@ -22,6 +23,7 @@ const app = new Hono()
 const DOMAIN_RE = /^(?!-)(?:[a-z0-9-]{1,63}\.)+[a-z]{2,63}$/i
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PHONE_RE = /^[0-9+().\-\s]{7,32}$/
+const SCAN_ADMIN_COOKIE = 'bos_scan_admin'
 
 function clientIp(c: Context) {
   const forwarded = c.req.header('x-forwarded-for')?.split(',')[0]?.trim()
@@ -123,6 +125,25 @@ function isAdmin(c: Context) {
   return c.req.header('x-admin-password') === password
 }
 
+function superadminEmails() {
+  return new Set(
+    (process.env.SUPERADMIN_EMAILS ?? 'nickperez@gmail.com')
+      .split(',')
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean),
+  )
+}
+
+async function isScanAdmin(c: Context) {
+  const password = process.env.ADMIN_PASSWORD
+  if (!password) return false
+
+  const email = await getSignedCookie(c, password, SCAN_ADMIN_COOKIE)
+  if (!email || typeof email !== 'string') return false
+
+  return superadminEmails().has(email.toLowerCase())
+}
+
 app.get('/admin', async (c) => {
   const html = await readFile(join(process.cwd(), 'public', 'admin.html'), 'utf8')
   return c.html(html)
@@ -142,6 +163,31 @@ app.get('/api/admin/snapshot', async (c) => {
     console.error('admin snapshot failed', error)
     return c.json({ error: 'Unable to load admin snapshot' }, 500)
   }
+})
+
+app.post('/api/admin/scan-unlock', async (c) => {
+  if (!isAdmin(c)) return c.json({ error: 'Unauthorized' }, 401)
+
+  let body: { email?: unknown }
+  try {
+    body = await c.req.json()
+  } catch {
+    return c.json({ error: 'Invalid JSON' }, 400)
+  }
+
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
+  if (!EMAIL_RE.test(email)) return c.json({ error: 'Invalid email' }, 400)
+  if (!superadminEmails().has(email)) return c.json({ error: 'Email is not a superadmin' }, 403)
+
+  await setSignedCookie(c, SCAN_ADMIN_COOKIE, email, process.env.ADMIN_PASSWORD ?? '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'Lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30,
+  })
+
+  return c.json({ ok: true, email })
 })
 
 app.post('/api/admin/cache/delete', async (c) => {
@@ -181,19 +227,22 @@ app.post('/api/glimpse', async (c) => {
   const userAgent = c.req.header('user-agent') ?? ''
 
   try {
-    const allowed = await checkRateLimit(ip)
-    if (!allowed) return c.json({ error: 'Rate limit exceeded' }, 429)
+    const scanAdmin = await isScanAdmin(c)
+    if (!scanAdmin) {
+      const allowed = await checkRateLimit(ip)
+      if (!allowed) return c.json({ error: 'Rate limit exceeded' }, 429)
 
-    const allowedUniqueDomain = await checkUniqueDomainScanLimit(ip, normalized.domain)
-    if (!allowedUniqueDomain) {
-      return c.json(
-        {
-          error: 'Free scan limit reached',
-          code: 'SCAN_LIMIT_REACHED',
-          limit: Number(process.env.GLIMPSE_UNIQUE_DOMAINS_PER_DAY ?? 2),
-        },
-        429,
-      )
+      const allowedUniqueDomain = await checkUniqueDomainScanLimit(ip, normalized.domain)
+      if (!allowedUniqueDomain) {
+        return c.json(
+          {
+            error: 'Free scan limit reached',
+            code: 'SCAN_LIMIT_REACHED',
+            limit: Number(process.env.GLIMPSE_UNIQUE_DOMAINS_PER_DAY ?? 2),
+          },
+          429,
+        )
+      }
     }
 
     const cached = await getCache(normalized.domain)
