@@ -8,6 +8,7 @@ import { buildSelfGuidedPlan, research, type SelfGuidedInput } from './anthropic
 import {
   attachEmailToLead,
   checkRateLimit,
+  checkUniqueDomainScanLimit,
   deleteCache,
   getAdminSnapshot,
   getCache,
@@ -182,6 +183,18 @@ app.post('/api/glimpse', async (c) => {
   try {
     const allowed = await checkRateLimit(ip)
     if (!allowed) return c.json({ error: 'Rate limit exceeded' }, 429)
+
+    const allowedUniqueDomain = await checkUniqueDomainScanLimit(ip, normalized.domain)
+    if (!allowedUniqueDomain) {
+      return c.json(
+        {
+          error: 'Free scan limit reached',
+          code: 'SCAN_LIMIT_REACHED',
+          limit: Number(process.env.GLIMPSE_UNIQUE_DOMAINS_PER_DAY ?? 2),
+        },
+        429,
+      )
+    }
 
     const cached = await getCache(normalized.domain)
     if (cached) {

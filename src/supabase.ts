@@ -90,6 +90,25 @@ export async function checkRateLimit(ip: string) {
   return true
 }
 
+export async function checkUniqueDomainScanLimit(ip: string, domain: string) {
+  const client = requireSupabase()
+
+  const maxUniqueDomains = Number(process.env.GLIMPSE_UNIQUE_DOMAINS_PER_DAY ?? 2)
+  if (maxUniqueDomains <= 0) return true
+
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { data, error } = await client
+    .from('leads')
+    .select('domain')
+    .eq('ip', ip)
+    .gte('created_at', dayAgo)
+
+  if (error) throw error
+
+  const domains = new Set((data ?? []).map((row) => String(row.domain)))
+  return domains.has(domain) || domains.size < maxUniqueDomains
+}
+
 export async function getCache(domain: string) {
   const client = requireSupabase()
 

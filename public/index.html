@@ -885,7 +885,9 @@
     const timeout = setTimeout(()=>controller.abort(), 45000);
     try{
       const r = await fetch('/api/glimpse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url}),signal:controller.signal});
-      if(r.ok){ const d = await r.json(); if(d && !d.fallback && d.company && Array.isArray(d.plays)) return d; }
+      const d = await r.json().catch(()=>null);
+      if(r.status===429 && d && d.code==='SCAN_LIMIT_REACHED') return {blocked:true, limit:d.limit || 2};
+      if(r.ok && d && !d.fallback && d.company && Array.isArray(d.plays)) return d;
     }catch(e){} finally { clearTimeout(timeout); }
     return null;
   }
@@ -941,6 +943,29 @@
       ? "Sample output. On the live site this is generated for your real URL via a server-side agent."
       : "Generated live just now for your URL.";
   }
+  function renderScanLimit(url, limit){
+    ttl.textContent = "business-os · scan limit reached";
+    glimpse.innerHTML =
+      '<div class="glimpse-head"><div class="presenter">'+
+        (haigAvatar?'<img src="'+haigAvatar+'" alt="Haig">':'')+
+        '<span class="presenter-copy"><a class="ey presenter-name" href="#haig-bio">Haig</a><b>Free scan limit reached.</b></span></div></div>'+
+      '<h2>'+esc(limit)+' free URL scans used</h2>'+
+      '<p class="glimpse-overview">To keep this useful and prevent competitor research abuse, free scans are limited per visitor. Send us the domain you want reviewed and we can route it into the operator-reviewed path.</p>'+
+      '<div class="plan-capture" id="planCapture"><span class="lbl">Send me this domain</span>'+
+        '<p>We will use your submitted URL and follow up with the right next step.</p>'+
+        '<form class="plan-form" id="planForm"><input id="planEmail" type="email" placeholder="you@company.com" autocomplete="email" required><input id="planPhone" type="tel" placeholder="phone number" autocomplete="tel" required><button type="submit" class="btn btn-primary">Send it →</button></form></div>';
+    requestAnimationFrame(()=>glimpse.classList.add('in'));
+    const pf = document.getElementById('planForm');
+    if(pf) pf.addEventListener('submit', e=>{
+      e.preventDefault();
+      const email = (document.getElementById('planEmail').value||'').trim();
+      const phone = (document.getElementById('planPhone').value||'').trim();
+      if(!email || !phone) return;
+      try{ fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url, email, phone, glimpse:{blocked:true, reason:'scan_limit_reached'}})}); }catch(_){}
+      document.getElementById('planCapture').innerHTML = '<span class="plan-ok">✓ Got it — we’ll follow up from here.</span>';
+    });
+    foot.textContent = "Free scans are limited by visitor to protect the quality of the research.";
+  }
   let busy=false;
   async function runGlimpse(){
     const url = cleanUrl(input.value);
@@ -963,9 +988,12 @@
     while(!result && !failed){ await wait(1300); }
     if(last) markDone(last);
     await wait(280);
-    let obj=result, sample=false;
-    if(!obj){ obj = fallbackFor(url); sample = true; }
-    renderGlimpse(obj, url, sample);
+    if(result && result.blocked) renderScanLimit(url, result.limit || 2);
+    else {
+      let obj=result, sample=false;
+      if(!obj){ obj = fallbackFor(url); sample = true; }
+      renderGlimpse(obj, url, sample);
+    }
     busy=false; go.disabled=false; go.textContent="Run again →";
   }
   if(input && go){
