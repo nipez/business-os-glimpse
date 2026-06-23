@@ -133,6 +133,17 @@
   .glimpse-item .n{font-family:var(--font-mono);font-size:.74rem;color:var(--accent);flex:none;margin-top:2px;min-width:20px}
   .glimpse-item .chk{width:17px;height:17px;border-radius:50%;background:rgba(91,124,255,.14);position:relative;flex:none;margin-top:1px}
   .glimpse-item .chk::after{content:"";position:absolute;left:6px;top:3px;width:4px;height:8px;border:2px solid var(--accent);border-top:0;border-left:0;transform:rotate(45deg)}
+  .locked-report{position:relative;margin-top:22px;padding:22px;border:1px solid rgba(154,107,255,.28);border-radius:14px;background:linear-gradient(180deg,rgba(91,124,255,.08),rgba(154,107,255,.055));overflow:hidden}
+  .locked-report::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(19,22,31,.18),rgba(19,22,31,.84));z-index:1;pointer-events:none}
+  .locked-lines{display:flex;flex-direction:column;gap:12px;filter:blur(5px);opacity:.56}
+  .locked-line{height:15px;border-radius:999px;background:rgba(255,255,255,.18)}
+  .locked-line:nth-child(2){width:86%}
+  .locked-line:nth-child(3){width:72%}
+  .locked-line:nth-child(4){width:94%}
+  .locked-message{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+  .locked-message b{font-family:var(--font-display);font-size:1.08rem;color:var(--text);margin-bottom:6px}
+  .locked-message span{color:var(--dim);font-size:.9rem;max-width:46ch}
+  .admin-tag{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--signal);background:rgba(52,217,160,.1);border:1px solid rgba(52,217,160,.28);padding:3px 9px;border-radius:999px}
   .operator-proof{margin-top:26px;padding:18px 20px;border:1px solid rgba(91,124,255,.22);border-radius:14px;background:linear-gradient(120deg,rgba(91,124,255,.08),rgba(154,107,255,.05))}
   .operator-proof .lbl{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
   .operator-proof p{color:var(--dim);font-size:.95rem;max-width:64ch}
@@ -841,6 +852,11 @@
   const glimpse = document.getElementById('glimpse');
   const ttl = document.getElementById('ttl');
   const foot = document.getElementById('foot');
+  let fullReportAccess = false;
+  const fullReportAccessReady = fetch('/api/glimpse-access')
+    .then(r=>r.ok?r.json():null)
+    .then(d=>{ fullReportAccess = !!(d && d.fullReport); })
+    .catch(()=>{ fullReportAccess = false; });
 
   const HOLYCOW = {
     company:"Holy Cow!",
@@ -907,27 +923,48 @@
   function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
   const haigAvatar = document.querySelector('img[alt="Haig"]')?.getAttribute('src') || '';
   document.querySelector('img[alt="Haig"]')?.closest('.founder')?.setAttribute('id','haig-bio');
+  function renderInsightSection(label, items, type, limit){
+    const shown = typeof limit === 'number' ? items.slice(0, limit) : items;
+    if(!shown.length) return '';
+    return '<div class="glimpse-sec"><div class="lbl">'+label+'</div>'+
+      shown.map((t,i)=>'<div class="glimpse-item">'+
+        (type==='number'?'<span class="n">0'+(i+1)+'</span>':'<span class="chk"></span>')+
+        '<span>'+esc(t)+'</span></div>').join('')+
+      '</div>';
+  }
+  function lockedTeaser(){
+    return '<div class="locked-report" id="lockedReport" aria-label="Full report locked">'+
+      '<div class="locked-lines"><span class="locked-line"></span><span class="locked-line"></span><span class="locked-line"></span><span class="locked-line"></span></div>'+
+      '<div class="locked-message"><b>Unlock the rest of the read</b><span>We found the next plays too. Enter email and phone below to reveal the full plan instantly.</span></div>'+
+    '</div>';
+  }
+  function fullReportHtml(o){
+    return renderInsightSection('What we noticed', o.observations || [], 'check')+
+      renderInsightSection('What we\u2019d put our agents on first', o.plays || [], 'number')+
+      '<div class="operator-proof"><div class="lbl">Why us</div>'+
+        '<p>This is built by operators, not tool tourists. <a href="#about">Nick and Haig</a> built R3VY, scaled revenue, and install the operating cadence, automations, and agents that keep founders out of recurring work.</p>'+
+        '<div class="proof-list"><span>Founder-led install</span><span>$30M revenue experience</span><span>Agents plus operators</span></div></div>';
+  }
+  function revealFullReport(o){
+    const locked = document.getElementById('lockedReport');
+    if(locked) locked.outerHTML = fullReportHtml(o);
+  }
   function renderGlimpse(o, url, sample){
+    const unlocked = fullReportAccess;
     ttl.textContent = "business-os · "+ (o.company||url);
     glimpse.innerHTML =
       '<div class="glimpse-head"><div class="presenter">'+
         (haigAvatar?'<img src="'+haigAvatar+'" alt="Haig">':'')+
         '<span class="presenter-copy"><a class="ey presenter-name" href="#haig-bio">Haig</a><b>Here\u2019s what we found:</b></span></div>'+
-        (sample?'<span class="sample-tag">sample output</span>':'')+
+        (unlocked?'<span class="admin-tag">admin full report</span>':(sample?'<span class="sample-tag">sample output</span>':''))+
       '</div>'+
       '<h2>'+esc(o.company)+'</h2>'+
       '<p class="glimpse-overview">'+esc(o.overview)+'</p>'+
-      '<div class="glimpse-sec"><div class="lbl">What we noticed</div>'+
-        o.observations.map(t=>'<div class="glimpse-item"><span class="chk"></span><span>'+esc(t)+'</span></div>').join('')+
-      '</div>'+
-      '<div class="glimpse-sec"><div class="lbl">What we\u2019d put our agents on first</div>'+
-        o.plays.map((t,i)=>'<div class="glimpse-item"><span class="n">0'+(i+1)+'</span><span>'+esc(t)+'</span></div>').join('')+
-      '</div>'+
-      '<div class="operator-proof"><div class="lbl">Why us</div>'+
-        '<p>This is built by operators, not tool tourists. <a href="#about">Nick and Haig</a> built R3VY, scaled revenue, and install the operating cadence, automations, and agents that keep founders out of recurring work.</p>'+
-        '<div class="proof-list"><span>Founder-led install</span><span>$30M revenue experience</span><span>Agents plus operators</span></div></div>'+
+      (unlocked
+        ? fullReportHtml(o)
+        : renderInsightSection('What we noticed', o.observations || [], 'check', 1)+lockedTeaser())+
       '<div class="plan-capture" id="planCapture"><span class="lbl">Send me my plan</span>'+
-        '<p>Get the full version of this read, the 3 plays we\u2019d run first, and a practical next step from the operators behind Business OS.</p>'+
+        '<p>'+(unlocked?'You are viewing the full report as superadmin.':'Enter email and phone to unlock the full read instantly and have the plan sent to you.')+'</p>'+
         '<form class="plan-form" id="planForm"><input id="planEmail" type="email" placeholder="you@company.com" autocomplete="email" required><input id="planPhone" type="tel" placeholder="phone number" autocomplete="tel" required><button type="submit" class="btn btn-primary">Send my plan \u2192</button></form></div>';
     requestAnimationFrame(()=>glimpse.classList.add('in'));
     const pf = document.getElementById('planForm');
@@ -937,7 +974,8 @@
       const phone = (document.getElementById('planPhone').value||'').trim();
       if(!email || !phone) return;
       try{ fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url, email, phone, glimpse:o})}); }catch(_){}
-      document.getElementById('planCapture').innerHTML = '<span class="plan-ok">\u2713 On its way — we\u2019ll send the full report and follow up to set a time.</span>';
+      revealFullReport(o);
+      document.getElementById('planCapture').innerHTML = '<span class="plan-ok">\u2713 Full report unlocked — we\u2019ll send this plan and follow up with the next step.</span>';
     });
     foot.textContent = sample
       ? "Sample output. On the live site this is generated for your real URL via a server-side agent."
@@ -987,6 +1025,7 @@
     if(!result && !failed){ if(last) markDone(last); last=addLine("synthesizing the read"); }
     while(!result && !failed){ await wait(1300); }
     if(last) markDone(last);
+    await fullReportAccessReady;
     await wait(280);
     if(result && result.blocked) renderScanLimit(url, result.limit || 2);
     else {

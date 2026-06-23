@@ -190,6 +190,10 @@ app.post('/api/admin/scan-unlock', async (c) => {
   return c.json({ ok: true, email })
 })
 
+app.get('/api/glimpse-access', async (c) => {
+  return c.json({ fullReport: await isScanAdmin(c) })
+})
+
 app.post('/api/admin/cache/delete', async (c) => {
   if (!isAdmin(c)) return c.json({ error: 'Unauthorized' }, 401)
 
