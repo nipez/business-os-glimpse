@@ -140,6 +140,8 @@
   .locked-line:nth-child(2){width:86%}
   .locked-line:nth-child(3){width:72%}
   .locked-line:nth-child(4){width:94%}
+  .locked-line:nth-child(5){width:64%}
+  .locked-line:nth-child(6){width:88%}
   .locked-message{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
   .locked-message b{font-family:var(--font-display);font-size:1.08rem;color:var(--text);margin-bottom:6px}
   .locked-message span{color:var(--dim);font-size:.9rem;max-width:46ch}
@@ -934,8 +936,8 @@
   }
   function lockedTeaser(){
     return '<div class="locked-report" id="lockedReport" aria-label="Full report locked">'+
-      '<div class="locked-lines"><span class="locked-line"></span><span class="locked-line"></span><span class="locked-line"></span><span class="locked-line"></span></div>'+
-      '<div class="locked-message"><b>Unlock the rest of the read</b><span>We found the next plays too. Enter email and phone below to reveal the full plan instantly.</span></div>'+
+      '<div class="locked-lines"><span class="locked-line"></span><span class="locked-line"></span><span class="locked-line"></span><span class="locked-line"></span><span class="locked-line"></span><span class="locked-line"></span></div>'+
+      '<div class="locked-message"><b>Unlock the full operating plan</b><span>Reveal the remaining findings, agent priorities, and why our operators would start there.</span></div>'+
     '</div>';
   }
   function fullReportHtml(o){
@@ -950,7 +952,7 @@
     if(locked) locked.outerHTML = fullReportHtml(o);
   }
   function renderGlimpse(o, url, sample){
-    const unlocked = fullReportAccess;
+    const unlocked = fullReportAccess || sample;
     ttl.textContent = "business-os · "+ (o.company||url);
     glimpse.innerHTML =
       '<div class="glimpse-head"><div class="presenter">'+
@@ -962,9 +964,10 @@
       '<p class="glimpse-overview">'+esc(o.overview)+'</p>'+
       (unlocked
         ? fullReportHtml(o)
-        : renderInsightSection('What we noticed', o.observations || [], 'check', 1)+lockedTeaser())+
+        : renderInsightSection('What we noticed', o.observations || [], 'check', 2)+
+          renderInsightSection('First agent we\u2019d deploy', o.plays || [], 'number', 1)+lockedTeaser())+
       '<div class="plan-capture" id="planCapture"><span class="lbl">Send me my plan</span>'+
-        '<p>'+(unlocked?'You are viewing the full report as superadmin.':'Enter email and phone to unlock the full read instantly and have the plan sent to you.')+'</p>'+
+        '<p>'+(fullReportAccess?'You are viewing the full report as superadmin.':(sample?'The live scan did not complete, so send the domain and we can route it into the operator-reviewed path.':'Enter email and phone to unlock the full read instantly and have the plan sent to you.'))+'</p>'+
         '<form class="plan-form" id="planForm"><input id="planEmail" type="email" placeholder="you@company.com" autocomplete="email" required><input id="planPhone" type="tel" placeholder="phone number" autocomplete="tel" required><button type="submit" class="btn btn-primary">Send my plan \u2192</button></form></div>';
     requestAnimationFrame(()=>glimpse.classList.add('in'));
     const pf = document.getElementById('planForm');
