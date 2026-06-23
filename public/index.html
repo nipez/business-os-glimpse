@@ -900,7 +900,7 @@
   }
   async function research(url){
     const controller = new AbortController();
-    const timeout = setTimeout(()=>controller.abort(), 45000);
+    const timeout = setTimeout(()=>controller.abort(), 65000);
     try{
       const r = await fetch('/api/glimpse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url}),signal:controller.signal});
       const d = await r.json().catch(()=>null);
@@ -958,7 +958,7 @@
       '<div class="glimpse-head"><div class="presenter">'+
         (haigAvatar?'<img src="'+haigAvatar+'" alt="Haig">':'')+
         '<span class="presenter-copy"><a class="ey presenter-name" href="#haig-bio">Haig</a><b>Here\u2019s what we found:</b></span></div>'+
-        (unlocked?'<span class="admin-tag">admin full report</span>':(sample?'<span class="sample-tag">sample output</span>':''))+
+        (sample?'<span class="sample-tag">sample output</span>':(fullReportAccess?'<span class="admin-tag">admin full report</span>':''))+
       '</div>'+
       '<h2>'+esc(o.company)+'</h2>'+
       '<p class="glimpse-overview">'+esc(o.overview)+'</p>'+
@@ -967,7 +967,7 @@
         : renderInsightSection('What we noticed', o.observations || [], 'check', 2)+
           renderInsightSection('First agent we\u2019d deploy', o.plays || [], 'number', 1)+lockedTeaser())+
       '<div class="plan-capture" id="planCapture"><span class="lbl">Send me my plan</span>'+
-        '<p>'+(fullReportAccess?'You are viewing the full report as superadmin.':(sample?'The live scan did not complete, so send the domain and we can route it into the operator-reviewed path.':'Enter email and phone to unlock the full read instantly and have the plan sent to you.'))+'</p>'+
+        '<p>'+(sample?'The live scan did not complete, so send the domain and we can route it into the operator-reviewed path.':(fullReportAccess?'You are viewing the full report as superadmin.':'Enter email and phone to unlock the full read instantly and have the plan sent to you.'))+'</p>'+
         '<form class="plan-form" id="planForm"><input id="planEmail" type="email" placeholder="you@company.com" autocomplete="email" required><input id="planPhone" type="tel" placeholder="phone number" autocomplete="tel" required><button type="submit" class="btn btn-primary">Send my plan \u2192</button></form></div>';
     requestAnimationFrame(()=>glimpse.classList.add('in'));
     const pf = document.getElementById('planForm');
