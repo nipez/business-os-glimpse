@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Business OS with Nick Perez</title>
-<meta name="description" content="Business OS with Nick Perez. Drop your URL and get the full agent read with no gated preview.">
+<title>Business OS — AI operating layer with Nick Perez</title>
+<meta name="description" content="Drop your website and see where an AI operating layer could create leverage in your business.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -96,17 +96,11 @@
   .lead-form input{flex:1 1 220px;background:var(--panel);border:1px solid var(--line2);border-radius:11px;color:var(--text);font-family:var(--mono);font-size:.88rem;padding:13px;outline:0}
   .ok{color:var(--green);font-family:var(--mono);font-size:.88rem}
   .foot{text-align:center;color:var(--faint);font-family:var(--mono);font-size:.72rem;margin-top:16px}
-  .section{padding:86px 0;border-top:1px solid var(--line)}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px}
-  .card h2{font-size:2rem;line-height:1.05;letter-spacing:-.04em;margin-bottom:12px}
-  .card p{color:var(--muted)}
   .hidden{display:none}
   @media(max-width:760px){
     .nav-links{display:none}
     .form,.lead-form{flex-direction:column}
     .btn{width:100%}
-    .grid{grid-template-columns:1fr}
     .hero{padding-top:62px}
   }
 </style>
@@ -117,9 +111,7 @@
     <a class="brand" href="#top"><span class="mark"></span>Business OS</a>
     <nav class="nav-links">
       <a href="#glimpse">Live scan</a>
-      <a href="#nick">Nick</a>
-      <a href="/self-guided">Self-guided</a>
-      <a href="/">Original page</a>
+      <a href="#proof">Why Nick</a>
     </nav>
     <a class="btn" href="#glimpse">Get your plan</a>
   </div>
@@ -137,7 +129,7 @@
       </div>
 
       <div class="glimpse" id="glimpse">
-        <p class="intro">Drop your website. The agent reads your business and shows the full result here. No gated preview on this version.</p>
+        <p class="intro">Drop your website. The agent reads your business and shows where I would put AI agents to work first.</p>
         <div class="form">
           <label class="urlbox"><span>https://</span><input id="url" placeholder="yourcompany.com" autocomplete="url"></label>
           <button class="btn" id="go">Run the agent -></button>
@@ -157,19 +149,6 @@
     </div>
   </section>
 
-  <section class="section" id="nick">
-    <div class="wrap grid">
-      <div class="card">
-        <div class="avatar">NP</div>
-        <h2 style="margin-top:18px">Built with Nick.</h2>
-        <p>I have spent 20+ years building demand engines, brands, funnels, and revenue systems. Business OS turns that operating work into a repeatable layer: strategy where it matters, agents where the work repeats, and a cadence that keeps execution moving.</p>
-      </div>
-      <div class="card">
-        <h2>What this version is for.</h2>
-        <p>This page is the direct-response version: one operator, one promise, and the full agent read shown immediately. Visitors can still send their plan, but the report itself is not hidden behind the form.</p>
-      </div>
-    </div>
-  </section>
 </main>
 
 <script>
@@ -206,11 +185,11 @@
     if(/holycow|holy\s*cow/i.test(url)) return HOLYCOW;
     return {
       company:url,
-      overview:"The live research agent could not complete this read just now. The domain is captured, but this fallback avoids pretending we have business-specific findings when the live pass did not finish.",
+      overview:"I could not complete the live research pass for this domain just now. Send the URL and I can route it into a more detailed review.",
       observations:[
-        "The domain was submitted successfully and can be routed into a manual review path.",
-        "A useful read should inspect the offer, funnel, proof points, current conversion path, and retention loops.",
-        "Once the live pass completes, this section should be replaced with company-specific findings."
+        "The domain was captured successfully.",
+        "The next useful review should inspect the offer, funnel, proof points, conversion path, and retention loops.",
+        "A stronger read should tie agent recommendations to the actual business model and where execution is currently leaking."
       ],
       plays:[
         "Run the live research pass again and cache the finished read for this domain.",
@@ -265,8 +244,8 @@
       '<p class="overview">'+esc(report.overview)+'</p>'+
       section('What I noticed', report.observations || [], false)+
       section('What I would put agents on first', report.plays || [], true)+
-      '<div class="proof"><div class="lbl">Why me</div><p>This is the work I know: positioning, growth systems, follow-up, and the operating rhythm that turns interest into revenue. The agents handle the repeatable pieces; I shape the system so it actually compounds.</p><div class="chips"><span>20+ years growth</span><span>Demand systems</span><span>AI execution layer</span></div></div>'+
-      '<div class="lead" id="lead"><div class="lbl">Send me my plan</div><p>The full read is already visible. Add email and phone if you want the plan sent back and the next step routed to Nick.</p><form class="lead-form" id="leadForm"><input id="email" type="email" placeholder="you@company.com" autocomplete="email" required><input id="phone" type="tel" placeholder="phone number" autocomplete="tel" required><button class="btn" type="submit">Send my plan -></button></form></div>';
+      '<div class="proof" id="proof"><div class="lbl">Why Nick</div><p>This is the work I know: positioning, growth systems, follow-up, and the operating rhythm that turns interest into revenue. The agents handle the repeatable pieces; I shape the system so it actually compounds.</p><div class="chips"><span>20+ years growth</span><span>Demand systems</span><span>AI execution layer</span></div></div>'+
+      '<div class="lead" id="lead"><div class="lbl">Send me my plan</div><p>Add email and phone if you want this read sent back with a practical next step.</p><form class="lead-form" id="leadForm"><input id="email" type="email" placeholder="you@company.com" autocomplete="email" required><input id="phone" type="tel" placeholder="phone number" autocomplete="tel" required><button class="btn" type="submit">Send my plan -></button></form></div>';
     requestAnimationFrame(()=>result.classList.add('in'));
     document.getElementById('leadForm')?.addEventListener('submit', event => {
       event.preventDefault();
@@ -280,7 +259,7 @@
       }).catch(()=>{});
       document.getElementById('lead').innerHTML = '<span class="ok">Got it. The plan is logged and ready for follow-up.</span>';
     });
-    foot.textContent = sample ? 'Fallback output. A completed live read will replace this with company-specific findings.' : 'Full result shown live for this URL.';
+    foot.textContent = sample ? 'Live read did not complete. Send the domain and I can review it directly.' : 'Generated live for this URL.';
   }
 
   function renderBlocked(url, limit){
