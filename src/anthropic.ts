@@ -121,11 +121,24 @@ Return ONLY valid JSON (no markdown, no code fences), exactly this shape:
  "stack":["3 recommended tool/data layers or system components"]}`
 }
 
+function textValue(value: unknown) {
+  if (typeof value === 'string') return value.trim()
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  if (value && typeof value === 'object') {
+    return Object.values(value)
+      .filter((item) => typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean')
+      .map(String)
+      .join(' ')
+      .trim()
+  }
+  return ''
+}
+
 function asTriple(value: unknown): [string, string, string] | null {
   if (!Array.isArray(value) || value.length < 3) return null
 
-  const items = value.slice(0, 3)
-  if (!items.every((item) => typeof item === 'string' && item.trim())) return null
+  const items = value.slice(0, 3).map(textValue)
+  if (!items.every(Boolean)) return null
 
   return [items[0], items[1], items[2]]
 }
@@ -214,8 +227,8 @@ function parseSelfGuidedPlan(content: unknown[]): SelfGuidedPlan {
   const buildOrder =
     Array.isArray(parsed.buildOrder) &&
     parsed.buildOrder.length >= 4 &&
-    parsed.buildOrder.slice(0, 4).every((item) => typeof item === 'string' && item.trim())
-      ? (parsed.buildOrder.slice(0, 4) as [string, string, string, string])
+    parsed.buildOrder.slice(0, 4).map(textValue).every(Boolean)
+      ? (parsed.buildOrder.slice(0, 4).map(textValue) as [string, string, string, string])
       : null
 
   if (

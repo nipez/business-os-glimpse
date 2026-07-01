@@ -371,18 +371,22 @@ app.post('/api/self-guided-plan', async (c) => {
     if (!allowed) return c.json({ error: 'Rate limit exceeded' }, 429)
 
     const plan = await buildSelfGuidedPlan(input)
-    await insertSelfGuidedPlan({
-      ...input,
-      email: email || undefined,
-      ip,
-      user_agent: userAgent,
-      plan,
-    })
+    try {
+      await insertSelfGuidedPlan({
+        ...input,
+        email: email || undefined,
+        ip,
+        user_agent: userAgent,
+        plan,
+      })
+    } catch (error) {
+      console.error('self-guided plan persistence failed', error)
+    }
 
     return c.json(plan)
   } catch (error) {
     console.error('self-guided plan failed', error)
-    return c.json({ error: 'Unable to build plan' }, 500)
+    return c.json({ error: 'Unable to generate plan right now. Try again in a minute.' }, 502)
   }
 })
 
