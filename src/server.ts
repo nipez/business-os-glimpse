@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { Hono } from 'hono'
 import { getSignedCookie, setSignedCookie } from 'hono/cookie'
 import type { Context } from 'hono'
-import { buildSelfGuidedPlan, research, type SelfGuidedInput } from './anthropic.js'
+import { buildSelfGuidedPlan, research, type SelfGuidedInput, type SelfGuidedPlan } from './anthropic.js'
 import {
   attachEmailToLead,
   checkRateLimit,
@@ -90,6 +90,43 @@ function optionalEmail(input: unknown) {
   const email = typeof input === 'string' ? input.trim().toLowerCase() : ''
   if (!email) return ''
   return EMAIL_RE.test(email) ? email : null
+}
+
+function fallbackSelfGuidedPlan(input: SelfGuidedInput): SelfGuidedPlan & { fallback: true } {
+  const website = input.website ? ` for ${input.website}` : ''
+  const owner = input.owner || 'the owner'
+
+  return {
+    fallback: true,
+    title: `${input.businessName} Backend OS`,
+    diagnosis: `${input.businessName}${website} needs a cleaner operating layer around ${input.bottleneck.toLowerCase()}. The priority is to turn the founder-dependent work into visible workflows, simple dashboards, and repeatable follow-up that ${owner.toLowerCase()} can run without rebuilding the system every week.`,
+    backend: [
+      `Operating source of truth: define the core records, owners, statuses, and handoffs for ${input.businessName} so the team knows where work lives and what happens next.`,
+      `Workflow command center: map the current tools (${input.tools}) into one practical view for leads, delivery, reporting, and follow-up instead of checking every system manually.`,
+      `Founder visibility dashboard: track the few numbers tied to the 90-day goal — ${input.goal} — with weekly review notes and clear next actions.`,
+    ],
+    automations: [
+      `Stale-work alert: when an important lead, customer, or task has no activity for several days, create a reminder for ${owner.toLowerCase()} with context and the next best action.`,
+      `Follow-up sequence: turn the most common manual follow-ups around ${input.bottleneck.toLowerCase()} into templated email or task steps that trigger from status changes.`,
+      `Weekly operating brief: generate a short summary of open work, blockers, wins, and metrics so the business can be reviewed without manual reporting.`,
+    ],
+    buildOrder: [
+      `Audit the current workflow in ${input.tools}: list every place work starts, moves, stalls, and gets reported.`,
+      `Create the minimum backend schema: owner, status, due date, source, priority, next action, and outcome for the highest-leverage workflow.`,
+      `Build one automation first: the stale-work alert tied to the bottleneck that costs the most founder time.`,
+      `Install a weekly review cadence: dashboard, brief, owner, and one logged decision every week until the system becomes habit.`,
+    ],
+    firstWeek: [
+      `Write down the 10 most recent examples of ${input.bottleneck.toLowerCase()} and mark exactly where each one stalled.`,
+      `Choose one tool as the operating home for the first version instead of spreading the build across every app at once.`,
+      `Draft the first follow-up template and the first weekly brief format so automation has good source material to work from.`,
+    ],
+    stack: [
+      `Airtable or Notion database for the first operating layer if the current CRM is too messy to trust.`,
+      `Zapier or Make to connect ${input.tools} and trigger the first alerts without custom engineering.`,
+      `Looker Studio, HubSpot reporting, or a lightweight dashboard tied only to the metrics behind ${input.goal}.`,
+    ],
+  }
 }
 
 function tokenize(value: string) {
@@ -386,7 +423,7 @@ app.post('/api/self-guided-plan', async (c) => {
     return c.json(plan)
   } catch (error) {
     console.error('self-guided plan failed', error)
-    return c.json({ error: 'Unable to generate plan right now. Try again in a minute.' }, 502)
+    return c.json(fallbackSelfGuidedPlan(input))
   }
 })
 

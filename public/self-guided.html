@@ -184,7 +184,8 @@
   const list = items => items.map((item, index) => '<li><b>'+String(index + 1).padStart(2,'0')+'</b><span>'+esc(item)+'</span></li>').join('');
 
   function render(plan){
-    output.innerHTML = '<h2>'+esc(plan.title)+'</h2>'+
+    output.innerHTML = (plan.fallback ? '<div class="small" style="margin-bottom:10px;color:#E9A23B">Fast plan generated from your intake. Refresh and run again later for the live AI-expanded version.</div>' : '')+
+      '<h2>'+esc(plan.title)+'</h2>'+
       '<p class="diagnosis">'+esc(plan.diagnosis)+'</p>'+
       '<div class="section"><div class="label">Backend modules</div><ol>'+list(plan.backend || [])+'</ol></div>'+
       '<div class="section"><div class="label">First automations</div><ol>'+list(plan.automations || [])+'</ol></div>'+
