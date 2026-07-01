@@ -154,6 +154,11 @@ app.get('/self-guided', async (c) => {
   return c.html(html)
 })
 
+app.get('/nick', async (c) => {
+  const html = await readFile(join(process.cwd(), 'public', 'nick.html'), 'utf8')
+  return c.html(html)
+})
+
 app.get('/api/admin/snapshot', async (c) => {
   if (!isAdmin(c)) return c.json({ error: 'Unauthorized' }, 401)
 

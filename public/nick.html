@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business OS with Nick Perez</title>
+<meta name="description" content="Business OS with Nick Perez. Drop your URL and get the full agent read with no gated preview.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090D;
+    --panel:#131722;
+    --panel2:#171B26;
+    --line:rgba(255,255,255,.1);
+    --line2:rgba(255,255,255,.16);
+    --text:#ECEEF2;
+    --muted:#A2A8B4;
+    --faint:#6A7180;
+    --accent:#5B7CFF;
+    --accent2:#9A6BFF;
+    --green:#34D9A0;
+    --font:"Geist",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    --mono:"Geist Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{width:min(1120px,calc(100% - 48px));margin:0 auto}
+  .mono{font-family:var(--mono)}
+  .nav{position:sticky;top:0;z-index:30;background:rgba(8,9,13,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  .nav-inner{height:68px;display:flex;align-items:center;justify-content:space-between;gap:22px}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:1.1rem;letter-spacing:-.03em}
+  .mark{width:24px;height:24px;border-radius:8px;background:linear-gradient(120deg,var(--accent),var(--accent2));position:relative;box-shadow:0 8px 24px -10px var(--accent)}
+  .mark:after{content:"";position:absolute;inset:7px;border-radius:3px;background:#08090D;opacity:.55}
+  .nav-links{display:flex;align-items:center;gap:24px;color:var(--muted);font-size:.92rem}
+  .btn{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:12px;padding:13px 22px;background:linear-gradient(120deg,var(--accent),var(--accent2));color:#fff;font-weight:700;cursor:pointer;box-shadow:0 14px 34px -18px var(--accent)}
+  .btn:disabled{opacity:.62;cursor:not-allowed}
+  .hero{position:relative;overflow:hidden;padding:86px 0 70px;text-align:center}
+  .hero:before{content:"";position:absolute;left:50%;top:-260px;width:980px;height:680px;transform:translateX(-50%);background:radial-gradient(ellipse at center,rgba(91,124,255,.24),rgba(154,107,255,.1) 40%,transparent 68%);filter:blur(10px)}
+  .hero .wrap{position:relative;z-index:1}
+  .badge{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:999px;padding:8px 14px}
+  .badge i{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 14px rgba(52,217,160,.75)}
+  h1{font-size:clamp(2.9rem,7vw,5.2rem);line-height:.96;letter-spacing:-.05em;margin:24px auto 0;max-width:13ch}
+  .grad{background:linear-gradient(120deg,#6C87FF,#A875FF);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:clamp(1.05rem,1.6vw,1.24rem);color:var(--muted);max-width:62ch;margin:24px auto 0}
+  .nick-strip{display:flex;align-items:center;justify-content:center;gap:13px;margin:26px auto 0;color:var(--muted)}
+  .avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(120deg,rgba(91,124,255,.28),rgba(154,107,255,.22));border:1px solid rgba(255,255,255,.18);box-shadow:0 12px 28px -20px #000;font-weight:800}
+  .nick-strip b{display:block;color:var(--text);font-size:1rem}
+  .nick-strip span{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
+  .glimpse{max-width:900px;margin:34px auto 0}
+  .intro{color:var(--muted);font-size:1rem;margin:0 auto 16px;max-width:54ch}
+  .form{display:flex;gap:10px;max-width:720px;margin:0 auto}
+  .urlbox{flex:1;display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line2);border-radius:13px;padding:0 15px}
+  .urlbox span{font-family:var(--mono);color:var(--faint)}
+  .urlbox input{flex:1;background:transparent;border:0;outline:0;color:var(--text);font-family:var(--mono);font-size:.96rem;padding:15px 0;min-width:0}
+  .hint{font-family:var(--mono);font-size:.74rem;color:var(--faint);margin-top:12px}
+  .hint a{color:var(--accent);cursor:pointer}
+  .stage{margin:34px auto 0;text-align:left}
+  .console{background:linear-gradient(180deg,#171B26,#11141C);border:1px solid var(--line2);border-radius:18px;overflow:hidden;box-shadow:0 50px 100px -52px #000}
+  .bar{display:flex;align-items:center;gap:13px;padding:15px 18px;border-bottom:1px solid var(--line);color:var(--faint);font-family:var(--mono);font-size:.82rem}
+  .dots{display:flex;gap:7px}
+  .dots i{width:10px;height:10px;border-radius:50%;background:#2A2F3C}
+  .live{margin-left:auto;color:var(--green);letter-spacing:.08em;text-transform:uppercase}
+  .body{padding:24px}
+  .run{font-family:var(--mono);font-size:.88rem;display:flex;flex-direction:column;gap:9px}
+  .line{display:flex;align-items:center;gap:11px;color:var(--muted)}
+  .spin{width:13px;height:13px;border-radius:50%;border:2px solid rgba(255,255,255,.15);border-top-color:var(--accent);animation:spin .8s linear infinite;flex:none}
+  .line.done{color:var(--faint)}
+  .line.done .spin{border:0;animation:none;position:relative}
+  .line.done .spin:after{content:"";position:absolute;left:3px;top:0;width:5px;height:9px;border:2px solid var(--green);border-top:0;border-left:0;transform:rotate(45deg)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .result{opacity:0;transform:translateY(10px);margin-top:28px;padding-top:24px;border-top:1px solid var(--line);transition:opacity .5s,transform .5s}
+  .result.in{opacity:1;transform:none}
+  .presenter{display:flex;align-items:center;gap:13px;margin-bottom:18px}
+  .presenter .ey{font-family:var(--mono);font-size:.68rem;letter-spacing:.13em;text-transform:uppercase;color:var(--accent)}
+  .presenter b{display:block;font-size:1.08rem}
+  .result h2{font-size:clamp(1.85rem,3.8vw,2.6rem);line-height:1.05;letter-spacing:-.04em;margin-bottom:12px}
+  .overview{color:var(--muted);font-size:1.04rem;padding-bottom:22px;border-bottom:1px solid var(--line)}
+  .sec{padding-top:24px}
+  .lbl{font-family:var(--mono);font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}
+  .item{display:flex;gap:13px;padding:13px 0;border-bottom:1px solid var(--line);color:var(--muted)}
+  .item:last-child{border-bottom:0}
+  .chk{width:17px;height:17px;border-radius:50%;background:rgba(91,124,255,.14);position:relative;flex:none;margin-top:3px}
+  .chk:after{content:"";position:absolute;left:6px;top:3px;width:4px;height:8px;border:2px solid var(--accent);border-top:0;border-left:0;transform:rotate(45deg)}
+  .num{font-family:var(--mono);font-size:.78rem;color:var(--accent);flex:none;min-width:22px;margin-top:1px}
+  .proof{margin-top:28px;padding:20px;border:1px solid rgba(91,124,255,.24);border-radius:14px;background:linear-gradient(120deg,rgba(91,124,255,.08),rgba(154,107,255,.05))}
+  .proof p{color:var(--muted);max-width:66ch}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .chips span{font-family:var(--mono);font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:rgba(255,255,255,.025)}
+  .lead{margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}
+  .lead p{color:var(--muted);margin:8px 0 14px;max-width:58ch}
+  .lead-form{display:flex;gap:8px;flex-wrap:wrap;max-width:760px}
+  .lead-form input{flex:1 1 220px;background:var(--panel);border:1px solid var(--line2);border-radius:11px;color:var(--text);font-family:var(--mono);font-size:.88rem;padding:13px;outline:0}
+  .ok{color:var(--green);font-family:var(--mono);font-size:.88rem}
+  .foot{text-align:center;color:var(--faint);font-family:var(--mono);font-size:.72rem;margin-top:16px}
+  .section{padding:86px 0;border-top:1px solid var(--line)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px}
+  .card h2{font-size:2rem;line-height:1.05;letter-spacing:-.04em;margin-bottom:12px}
+  .card p{color:var(--muted)}
+  .hidden{display:none}
+  @media(max-width:760px){
+    .nav-links{display:none}
+    .form,.lead-form{flex-direction:column}
+    .btn{width:100%}
+    .grid{grid-template-columns:1fr}
+    .hero{padding-top:62px}
+  }
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top"><span class="mark"></span>Business OS</a>
+    <nav class="nav-links">
+      <a href="#glimpse">Live scan</a>
+      <a href="#nick">Nick</a>
+      <a href="/self-guided">Self-guided</a>
+      <a href="/">Original page</a>
+    </nav>
+    <a class="btn" href="#glimpse">Get your plan</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div class="badge"><i></i> Nick Perez + AI agents</div>
+      <h1>If your competitors adopt AI first, <span class="grad">the gap compounds.</span></h1>
+      <p class="lede">I help founders install the operating layer their company is missing: demand systems, follow-up engines, reporting, research, and agents that keep work moving without adding more headcount.</p>
+      <div class="nick-strip">
+        <div class="avatar">NP</div>
+        <div><b>Nick Perez</b><span>Growth operator and agent builder</span></div>
+      </div>
+
+      <div class="glimpse" id="glimpse">
+        <p class="intro">Drop your website. The agent reads your business and shows the full result here. No gated preview on this version.</p>
+        <div class="form">
+          <label class="urlbox"><span>https://</span><input id="url" placeholder="yourcompany.com" autocomplete="url"></label>
+          <button class="btn" id="go">Run the agent -></button>
+        </div>
+        <div class="hint">Try it: <a id="try">getholycow.com</a></div>
+        <div class="stage hidden" id="stage">
+          <div class="console">
+            <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span id="ttl">business-os - live agent</span><span class="live">live</span></div>
+            <div class="body">
+              <div class="run" id="run"></div>
+              <div class="result" id="result"></div>
+            </div>
+          </div>
+          <div class="foot" id="foot"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="nick">
+    <div class="wrap grid">
+      <div class="card">
+        <div class="avatar">NP</div>
+        <h2 style="margin-top:18px">Built with Nick.</h2>
+        <p>I have spent 20+ years building demand engines, brands, funnels, and revenue systems. Business OS turns that operating work into a repeatable layer: strategy where it matters, agents where the work repeats, and a cadence that keeps execution moving.</p>
+      </div>
+      <div class="card">
+        <h2>What this version is for.</h2>
+        <p>This page is the direct-response version: one operator, one promise, and the full agent read shown immediately. Visitors can still send their plan, but the report itself is not hidden behind the form.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  document.documentElement.classList.add('js');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const input = document.getElementById('url');
+  const go = document.getElementById('go');
+  const stage = document.getElementById('stage');
+  const run = document.getElementById('run');
+  const result = document.getElementById('result');
+  const ttl = document.getElementById('ttl');
+  const foot = document.getElementById('foot');
+
+  const HOLYCOW = {
+    company:"Holy Cow!",
+    overview:"A DTC lactose-intolerance brand: a once-daily probiotic clinically shown to cut symptoms meaningfully versus placebo. It has the bones of a differentiated category story, so the leverage is in retention, education, and repeatable acquisition.",
+    observations:[
+      "The science-led positioning is a real wedge in a category full of generic enzymes and broad probiotic claims.",
+      "The customer promise is emotional and practical: people want to eat normally again, not manage a complicated pill ritual.",
+      "Reviews and customer language can become a messaging engine, not just social proof sitting on the product page."
+    ],
+    plays:[
+      "Build a retention agent that watches reorder timing, churn risk, refunds, and win-back opportunities.",
+      "Turn customer reviews into an ad and email testing loop that continuously surfaces the strongest language.",
+      "Install a support agent for repetitive questions so education scales without pulling the founder back into the inbox."
+    ]
+  };
+
+  const cleanUrl = value => (value||'').trim().replace(/^https?:\/\//i,'').replace(/^www\./i,'').split(/[/?#]/)[0].replace(/\/+$/,'').toLowerCase();
+  const esc = value => (value||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const wait = ms => new Promise(resolve => setTimeout(resolve, reduce ? 0 : ms));
+
+  function fallbackFor(url){
+    if(/holycow|holy\s*cow/i.test(url)) return HOLYCOW;
+    return {
+      company:url,
+      overview:"The live research agent could not complete this read just now. The domain is captured, but this fallback avoids pretending we have business-specific findings when the live pass did not finish.",
+      observations:[
+        "The domain was submitted successfully and can be routed into a manual review path.",
+        "A useful read should inspect the offer, funnel, proof points, current conversion path, and retention loops.",
+        "Once the live pass completes, this section should be replaced with company-specific findings."
+      ],
+      plays:[
+        "Run the live research pass again and cache the finished read for this domain.",
+        "Review the site's offer, funnel, and lead capture path for immediate operating leverage.",
+        "Turn the finished read into a practical follow-up plan tied to email and phone capture."
+      ]
+    };
+  }
+
+  async function research(url){
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(), 65000);
+    try{
+      const response = await fetch('/api/glimpse', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({url}),
+        signal:controller.signal
+      });
+      const data = await response.json().catch(()=>null);
+      if(response.ok && data && !data.fallback && data.company && Array.isArray(data.plays)) return data;
+      if(response.status===429 && data && data.code==='SCAN_LIMIT_REACHED') return {blocked:true, limit:data.limit || 2};
+    }catch(_){
+    }finally{
+      clearTimeout(timeout);
+    }
+    return null;
+  }
+
+  function addLine(text){
+    const line = document.createElement('div');
+    line.className = 'line';
+    line.innerHTML = '<span class="spin"></span><span></span>';
+    line.querySelector('span:last-child').textContent = text;
+    run.appendChild(line);
+    return line;
+  }
+
+  function section(label, items, numbered){
+    return '<div class="sec"><div class="lbl">'+label+'</div>'+
+      items.map((item, index) => '<div class="item">'+
+        (numbered ? '<span class="num">0'+(index+1)+'</span>' : '<span class="chk"></span>')+
+        '<span>'+esc(item)+'</span></div>').join('')+
+      '</div>';
+  }
+
+  function renderReport(report, url, sample){
+    ttl.textContent = 'business-os - '+(report.company || url);
+    result.innerHTML =
+      '<div class="presenter"><div class="avatar">NP</div><div><div class="ey">Nick</div><b>Here is what I found:</b></div></div>'+
+      '<h2>'+esc(report.company)+'</h2>'+
+      '<p class="overview">'+esc(report.overview)+'</p>'+
+      section('What I noticed', report.observations || [], false)+
+      section('What I would put agents on first', report.plays || [], true)+
+      '<div class="proof"><div class="lbl">Why me</div><p>This is the work I know: positioning, growth systems, follow-up, and the operating rhythm that turns interest into revenue. The agents handle the repeatable pieces; I shape the system so it actually compounds.</p><div class="chips"><span>20+ years growth</span><span>Demand systems</span><span>AI execution layer</span></div></div>'+
+      '<div class="lead" id="lead"><div class="lbl">Send me my plan</div><p>The full read is already visible. Add email and phone if you want the plan sent back and the next step routed to Nick.</p><form class="lead-form" id="leadForm"><input id="email" type="email" placeholder="you@company.com" autocomplete="email" required><input id="phone" type="tel" placeholder="phone number" autocomplete="tel" required><button class="btn" type="submit">Send my plan -></button></form></div>';
+    requestAnimationFrame(()=>result.classList.add('in'));
+    document.getElementById('leadForm')?.addEventListener('submit', event => {
+      event.preventDefault();
+      const email = (document.getElementById('email').value || '').trim();
+      const phone = (document.getElementById('phone').value || '').trim();
+      if(!email || !phone) return;
+      fetch('/api/lead', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({url, email, phone, glimpse:report})
+      }).catch(()=>{});
+      document.getElementById('lead').innerHTML = '<span class="ok">Got it. The plan is logged and ready for follow-up.</span>';
+    });
+    foot.textContent = sample ? 'Fallback output. A completed live read will replace this with company-specific findings.' : 'Full result shown live for this URL.';
+  }
+
+  function renderBlocked(url, limit){
+    result.innerHTML =
+      '<div class="presenter"><div class="avatar">NP</div><div><div class="ey">Nick</div><b>Free scan limit reached.</b></div></div>'+
+      '<h2>'+esc(limit)+' free URL scans used</h2>'+
+      '<p class="overview">Free scans are limited to prevent competitor research abuse. Send the domain and I can route it into the reviewed path.</p>'+
+      '<div class="lead" id="lead"><div class="lbl">Send me this domain</div><form class="lead-form" id="leadForm"><input id="email" type="email" placeholder="you@company.com" autocomplete="email" required><input id="phone" type="tel" placeholder="phone number" autocomplete="tel" required><button class="btn" type="submit">Send it -></button></form></div>';
+    requestAnimationFrame(()=>result.classList.add('in'));
+    document.getElementById('leadForm')?.addEventListener('submit', event => {
+      event.preventDefault();
+      const email = (document.getElementById('email').value || '').trim();
+      const phone = (document.getElementById('phone').value || '').trim();
+      if(!email || !phone) return;
+      fetch('/api/lead', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({url, email, phone, glimpse:{blocked:true, reason:'scan_limit_reached'}})
+      }).catch(()=>{});
+      document.getElementById('lead').innerHTML = '<span class="ok">Got it. The domain is logged.</span>';
+    });
+  }
+
+  function keepInView(){
+    const top = document.getElementById('glimpse').getBoundingClientRect().top + scrollY - 92;
+    scrollTo({top:Math.max(0, top), behavior:reduce?'auto':'smooth'});
+  }
+
+  async function runScan(){
+    const url = cleanUrl(input.value);
+    if(!url) return;
+    input.value = url;
+    go.disabled = true;
+    go.textContent = 'Running...';
+    stage.classList.remove('hidden');
+    run.innerHTML = '';
+    result.className = 'result';
+    result.innerHTML = '';
+    foot.textContent = '';
+    ttl.textContent = 'business-os - researching '+url;
+    requestAnimationFrame(keepInView);
+
+    let scan = null;
+    let failed = false;
+    research(url).then(value => { if(value) scan = value; else failed = true; }).catch(()=>{ failed = true; });
+    const steps = [
+      'fetching https://'+url,
+      'reading the homepage and key pages',
+      'searching the web for context',
+      'scanning the competitive landscape',
+      'building the operating read'
+    ];
+    let active = null;
+    for(let i=0;i<steps.length;i++){
+      if(active) active.classList.add('done');
+      active = addLine(steps[i]);
+      await wait(1150);
+      if((scan || failed) && i>=2) break;
+    }
+    if(!scan && !failed){
+      if(active) active.classList.add('done');
+      active = addLine('synthesizing the read');
+    }
+    while(!scan && !failed) await wait(1200);
+    if(active) active.classList.add('done');
+    await wait(250);
+    if(scan && scan.blocked) renderBlocked(url, scan.limit || 2);
+    else renderReport(scan || fallbackFor(url), url, !scan);
+    go.disabled = false;
+    go.textContent = 'Run again ->';
+  }
+
+  input.addEventListener('input', () => { input.value = cleanUrl(input.value); });
+  input.addEventListener('paste', () => setTimeout(()=>{ input.value = cleanUrl(input.value); }, 0));
+  input.addEventListener('keydown', event => { if(event.key === 'Enter') runScan(); });
+  go.addEventListener('click', runScan);
+  document.getElementById('try').addEventListener('click', () => { input.value = 'getholycow.com'; runScan(); });
+</script>
+</body>
+</html>
