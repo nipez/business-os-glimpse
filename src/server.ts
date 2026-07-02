@@ -196,6 +196,11 @@ app.get('/nick', async (c) => {
   return c.html(html)
 })
 
+app.get('/jake', async (c) => {
+  const html = await readFile(join(process.cwd(), 'public', 'jake.html'), 'utf8')
+  return c.html(html)
+})
+
 app.get('/api/admin/snapshot', async (c) => {
   if (!isAdmin(c)) return c.json({ error: 'Unauthorized' }, 401)
 
