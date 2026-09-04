@@ -9,6 +9,7 @@ create table if not exists leads (
   ip text,
   user_agent text,
   glimpse jsonb,
+  recap_sent_at timestamptz,
   created_at timestamptz default now()
 );
 create index if not exists leads_domain_idx on leads (domain);
@@ -41,6 +42,7 @@ create table if not exists self_guided_plans (
   ip text,
   user_agent text,
   plan jsonb not null,
+  recap_sent_at timestamptz,
   created_at timestamptz default now()
 );
 create index if not exists self_guided_plans_created_at_idx on self_guided_plans (created_at);
