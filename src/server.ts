@@ -6,6 +6,7 @@ import { Hono } from 'hono'
 import { getSignedCookie, setSignedCookie } from 'hono/cookie'
 import type { Context } from 'hono'
 import { buildSelfGuidedPlan, research, type SelfGuidedInput, type SelfGuidedPlan } from './anthropic.js'
+import { isEmailConfigured, sendGlimpseRecap, sendSelfGuidedRecap } from './email.js'
 import {
   attachEmailToLead,
   checkRateLimit,
@@ -13,8 +14,12 @@ import {
   deleteCache,
   getAdminSnapshot,
   getCache,
+  hasSentLeadRecap,
+  hasSentSelfGuidedRecap,
   insertLead,
   insertSelfGuidedPlan,
+  markLeadRecapSent,
+  markSelfGuidedRecapSent,
   setCache,
 } from './supabase.js'
 
@@ -205,7 +210,11 @@ app.get('/api/admin/snapshot', async (c) => {
   if (!isAdmin(c)) return c.json({ error: 'Unauthorized' }, 401)
 
   try {
-    return c.json(await getAdminSnapshot())
+    const snapshot = await getAdminSnapshot()
+    return c.json({
+      ...snapshot,
+      email: { configured: isEmailConfigured() },
+    })
   } catch (error) {
     console.error('admin snapshot failed', error)
     return c.json({ error: 'Unable to load admin snapshot' }, 500)
@@ -372,7 +381,7 @@ app.post('/api/lead', async (c) => {
     const allowed = await checkRateLimit(ip)
     if (!allowed) return c.json({ error: 'Rate limit exceeded' }, 429)
 
-    await attachEmailToLead({
+    const lead = await attachEmailToLead({
       domain: normalized.domain,
       url: normalized.url,
       email,
@@ -385,7 +394,23 @@ app.post('/api/lead', async (c) => {
           : undefined,
     })
 
-    return c.json({ ok: true })
+    const alreadySent = Boolean(lead.recap_sent_at) || (await hasSentLeadRecap(email, normalized.domain))
+    const recap = await sendGlimpseRecap({
+      domain: normalized.domain,
+      email,
+      phone,
+      glimpse: body.glimpse,
+      alreadySent,
+    })
+    if (recap === 'sent') {
+      try {
+        await markLeadRecapSent(lead.id)
+      } catch (error) {
+        console.error('lead recap mark failed', error)
+      }
+    }
+
+    return c.json({ ok: true, recap })
   } catch (error) {
     console.error('lead route failed', error)
     return c.json({ error: 'Unable to capture lead' }, 500)
@@ -413,19 +438,36 @@ app.post('/api/self-guided-plan', async (c) => {
     if (!allowed) return c.json({ error: 'Rate limit exceeded' }, 429)
 
     const plan = await buildSelfGuidedPlan(input)
+    let recap: 'sent' | 'skipped' | 'failed' | 'disabled' | undefined
     try {
-      await insertSelfGuidedPlan({
+      const saved = await insertSelfGuidedPlan({
         ...input,
         email: email || undefined,
         ip,
         user_agent: userAgent,
         plan,
       })
+      if (email) {
+        const alreadySent = Boolean(saved.recap_sent_at) || (await hasSentSelfGuidedRecap(email, input.businessName))
+        recap = await sendSelfGuidedRecap({
+          email,
+          businessName: input.businessName,
+          plan,
+          alreadySent,
+        })
+        if (recap === 'sent') {
+          try {
+            await markSelfGuidedRecapSent(saved.id)
+          } catch (error) {
+            console.error('self-guided recap mark failed', error)
+          }
+        }
+      }
     } catch (error) {
       console.error('self-guided plan persistence failed', error)
     }
 
-    return c.json(plan)
+    return c.json(recap ? { ...plan, recap } : plan)
   } catch (error) {
     console.error('self-guided plan failed', error)
     return c.json(fallbackSelfGuidedPlan(input))

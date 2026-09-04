@@ -923,6 +923,39 @@
   }
   const markDone = li => li.classList.add('done');
   function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+  function recapMessage(recap, kind){
+    if(kind==='blocked'){
+      if(recap==='sent') return '<span class="plan-ok">\u2713 Check your inbox \u2014 we logged the domain and sent the next step.</span>';
+      return '<span class="plan-ok">\u2713 Got it \u2014 we\u2019ll follow up from here.</span>';
+    }
+    if(recap==='sent') return '<span class="plan-ok">\u2713 Full report unlocked \u2014 check your inbox for the plan. We\u2019ll follow up with the next step.</span>';
+    if(recap==='skipped') return '<span class="plan-ok">\u2713 Full report unlocked \u2014 this plan was already sent to that inbox.</span>';
+    return '<span class="plan-ok">\u2713 Full report unlocked \u2014 we have your details and will follow up with the next step.</span>';
+  }
+  async function submitLead(form, payload, onSuccess){
+    const email = (payload.email||'').trim();
+    const phone = (payload.phone||'').trim();
+    if(!email || !phone) return;
+    const btn = form.querySelector('button');
+    const original = btn ? btn.textContent : '';
+    if(btn){ btn.disabled = true; btn.textContent = 'Sending\u2026'; }
+    try{
+      const r = await fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload, email, phone})});
+      const d = await r.json().catch(()=>null);
+      if(!r.ok) throw new Error(d && d.error ? d.error : 'Unable to send');
+      onSuccess(d && d.recap);
+    }catch(err){
+      if(btn){ btn.disabled = false; btn.textContent = original; }
+      const note = form.parentElement?.querySelector('.plan-error') || document.createElement('div');
+      note.className = 'plan-error';
+      note.style.color = '#E9A23B';
+      note.style.marginTop = '10px';
+      note.style.fontFamily = 'var(--font-mono)';
+      note.style.fontSize = '.78rem';
+      note.textContent = err.message || 'Unable to send';
+      if(!note.parentElement) form.after(note);
+    }
+  }
   const haigAvatar = document.querySelector('img[alt="Haig"]')?.getAttribute('src') || '';
   document.querySelector('img[alt="Haig"]')?.closest('.founder')?.setAttribute('id','haig-bio');
   function renderInsightSection(label, items, type, limit){
@@ -973,12 +1006,10 @@
     const pf = document.getElementById('planForm');
     if(pf) pf.addEventListener('submit', e=>{
       e.preventDefault();
-      const email = (document.getElementById('planEmail').value||'').trim();
-      const phone = (document.getElementById('planPhone').value||'').trim();
-      if(!email || !phone) return;
-      try{ fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url, email, phone, glimpse:o})}); }catch(_){}
-      revealFullReport(o);
-      document.getElementById('planCapture').innerHTML = '<span class="plan-ok">\u2713 Full report unlocked — we\u2019ll send this plan and follow up with the next step.</span>';
+      submitLead(pf, {url, email: document.getElementById('planEmail').value, phone: document.getElementById('planPhone').value, glimpse:o}, recap => {
+        revealFullReport(o);
+        document.getElementById('planCapture').innerHTML = recapMessage(recap, 'unlocked');
+      });
     });
     foot.textContent = sample
       ? "Sample output. On the live site this is generated for your real URL via a server-side agent."
@@ -999,11 +1030,9 @@
     const pf = document.getElementById('planForm');
     if(pf) pf.addEventListener('submit', e=>{
       e.preventDefault();
-      const email = (document.getElementById('planEmail').value||'').trim();
-      const phone = (document.getElementById('planPhone').value||'').trim();
-      if(!email || !phone) return;
-      try{ fetch('/api/lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url, email, phone, glimpse:{blocked:true, reason:'scan_limit_reached'}})}); }catch(_){}
-      document.getElementById('planCapture').innerHTML = '<span class="plan-ok">✓ Got it — we’ll follow up from here.</span>';
+      submitLead(pf, {url, email: document.getElementById('planEmail').value, phone: document.getElementById('planPhone').value, glimpse:{blocked:true, reason:'scan_limit_reached'}}, recap => {
+        document.getElementById('planCapture').innerHTML = recapMessage(recap, 'blocked');
+      });
     });
     foot.textContent = "Free scans are limited by visitor to protect the quality of the research.";
   }

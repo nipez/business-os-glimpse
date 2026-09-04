@@ -14,6 +14,16 @@ type LeadInsert = {
   glimpse?: Glimpse | Record<string, unknown>
 }
 
+type LeadContactRow = {
+  id: string
+  recap_sent_at?: string | null
+}
+
+type SelfGuidedPlanRow = {
+  id: string
+  recap_sent_at?: string | null
+}
+
 type SelfGuidedPlanInsert = SelfGuidedInput & {
   email?: string
   ip?: string
@@ -162,21 +172,53 @@ export async function insertLead(lead: LeadInsert) {
   if (error) throw error
 }
 
-export async function attachEmailToLead(lead: LeadInsert & { email: string }) {
+function isMissingRecapColumn(error: { message?: string } | null) {
+  return /recap_sent_at|column .* does not exist/i.test(error?.message ?? '')
+}
+
+export async function attachEmailToLead(lead: LeadInsert & { email: string }): Promise<LeadContactRow> {
   const client = requireSupabase()
 
   const { data: existing, error: findError } = await client
     .from('leads')
-    .select('id')
+    .select('id, recap_sent_at')
     .eq('domain', lead.domain)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()
 
-  if (findError) throw findError
+  if (findError) {
+    if (isMissingRecapColumn(findError)) {
+      const { data: fallback, error } = await client
+        .from('leads')
+        .select('id')
+        .eq('domain', lead.domain)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (error) throw error
+      if (fallback?.id) {
+        const { error: updateError } = await client
+          .from('leads')
+          .update({
+            email: lead.email,
+            phone: lead.phone,
+            url: lead.url,
+            ip: lead.ip,
+            user_agent: lead.user_agent,
+            glimpse: lead.glimpse,
+          })
+          .eq('id', fallback.id)
+        if (updateError) throw updateError
+        return { id: fallback.id, recap_sent_at: null }
+      }
+    } else {
+      throw findError
+    }
+  }
 
   if (existing?.id) {
-    const { error } = await client
+    const { data, error } = await client
       .from('leads')
       .update({
         email: lead.email,
@@ -187,18 +229,83 @@ export async function attachEmailToLead(lead: LeadInsert & { email: string }) {
         glimpse: lead.glimpse,
       })
       .eq('id', existing.id)
+      .select('id, recap_sent_at')
+      .single()
 
     if (error) throw error
-    return
+    return data
   }
 
-  await insertLead(lead)
+  const { data, error } = await client.from('leads').insert(lead).select('id, recap_sent_at').single()
+  if (error) {
+    if (!isMissingRecapColumn(error)) throw error
+    await insertLead(lead)
+    return { id: 'unknown', recap_sent_at: null }
+  }
+  return data
 }
 
-export async function insertSelfGuidedPlan(input: SelfGuidedPlanInsert) {
+export async function hasSentLeadRecap(email: string, domain: string) {
   const client = requireSupabase()
 
-  const { error } = await client.from('self_guided_plans').insert({
+  const { data, error } = await client
+    .from('leads')
+    .select('id')
+    .eq('email', email)
+    .eq('domain', domain)
+    .not('recap_sent_at', 'is', null)
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    if (isMissingRecapColumn(error)) return false
+    throw error
+  }
+
+  return Boolean(data?.id)
+}
+
+export async function markLeadRecapSent(id: string) {
+  if (!id || id === 'unknown') return
+
+  const client = requireSupabase()
+  const { error } = await client.from('leads').update({ recap_sent_at: new Date().toISOString() }).eq('id', id)
+  if (error && !isMissingRecapColumn(error)) throw error
+}
+
+export async function hasSentSelfGuidedRecap(email: string, businessName: string) {
+  const client = requireSupabase()
+
+  const { data, error } = await client
+    .from('self_guided_plans')
+    .select('id')
+    .eq('email', email)
+    .eq('business_name', businessName)
+    .not('recap_sent_at', 'is', null)
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    if (isMissingRecapColumn(error)) return false
+    throw error
+  }
+
+  return Boolean(data?.id)
+}
+
+export async function markSelfGuidedRecapSent(id: string) {
+  const client = requireSupabase()
+  const { error } = await client
+    .from('self_guided_plans')
+    .update({ recap_sent_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error && !isMissingRecapColumn(error)) throw error
+}
+
+export async function insertSelfGuidedPlan(input: SelfGuidedPlanInsert): Promise<SelfGuidedPlanRow> {
+  const client = requireSupabase()
+
+  const payload = {
     business_name: input.businessName,
     website: input.website,
     email: input.email,
@@ -211,21 +318,97 @@ export async function insertSelfGuidedPlan(input: SelfGuidedPlanInsert) {
     ip: input.ip,
     user_agent: input.user_agent,
     plan: input.plan,
-  })
+  }
 
-  if (error) throw error
+  const { data, error } = await client.from('self_guided_plans').insert(payload).select('id, recap_sent_at').single()
+  if (error) {
+    if (!isMissingRecapColumn(error)) throw error
+    const { data: fallback, error: fallbackError } = await client
+      .from('self_guided_plans')
+      .insert(payload)
+      .select('id')
+      .single()
+    if (fallbackError) throw fallbackError
+    return { id: fallback.id, recap_sent_at: null }
+  }
+
+  return data
 }
 
-export async function getAdminSnapshot() {
-  const client = requireSupabase()
+type LeadRow = {
+  id: string
+  domain: string
+  url?: string | null
+  email?: string | null
+  phone?: string | null
+  ip?: string | null
+  user_agent?: string | null
+  glimpse?: unknown
+  recap_sent_at?: string | null
+  created_at?: string
+}
 
-  const { data: leads, error: leadsError } = await client
+type SelfGuidedRow = {
+  id: string
+  business_name: string
+  website?: string | null
+  email?: string | null
+  stage?: string | null
+  team_size?: string | null
+  tools?: string | null
+  bottleneck?: string | null
+  goal?: string | null
+  owner?: string | null
+  ip?: string | null
+  user_agent?: string | null
+  plan?: unknown
+  recap_sent_at?: string | null
+  created_at?: string
+}
+
+async function selectLeads(client: SupabaseClient): Promise<LeadRow[]> {
+  const withRecap = await client
+    .from('leads')
+    .select('id, domain, url, email, phone, ip, user_agent, glimpse, recap_sent_at, created_at')
+    .order('created_at', { ascending: false })
+    .limit(500)
+
+  if (!withRecap.error) return (withRecap.data ?? []) as LeadRow[]
+  if (!isMissingRecapColumn(withRecap.error)) throw withRecap.error
+
+  const fallback = await client
     .from('leads')
     .select('id, domain, url, email, phone, ip, user_agent, glimpse, created_at')
     .order('created_at', { ascending: false })
     .limit(500)
 
-  if (leadsError) throw leadsError
+  if (fallback.error) throw fallback.error
+  return (fallback.data ?? []) as LeadRow[]
+}
+
+async function selectSelfGuided(client: SupabaseClient): Promise<SelfGuidedRow[]> {
+  const withRecap = await client
+    .from('self_guided_plans')
+    .select('id, business_name, website, email, stage, team_size, tools, bottleneck, goal, owner, ip, user_agent, plan, recap_sent_at, created_at')
+    .order('created_at', { ascending: false })
+    .limit(500)
+
+  if (!withRecap.error) return (withRecap.data ?? []) as SelfGuidedRow[]
+  if (!isMissingRecapColumn(withRecap.error)) throw withRecap.error
+
+  const fallback = await client
+    .from('self_guided_plans')
+    .select('id, business_name, website, email, stage, team_size, tools, bottleneck, goal, owner, ip, user_agent, plan, created_at')
+    .order('created_at', { ascending: false })
+    .limit(500)
+
+  if (fallback.error) throw fallback.error
+  return (fallback.data ?? []) as SelfGuidedRow[]
+}
+
+export async function getAdminSnapshot() {
+  const client = requireSupabase()
+  const leads = await selectLeads(client)
 
   const { data: cache, error: cacheError } = await client
     .from('glimpse_cache')
@@ -235,17 +418,11 @@ export async function getAdminSnapshot() {
 
   if (cacheError) throw cacheError
 
-  const { data: selfGuided, error: selfGuidedError } = await client
-    .from('self_guided_plans')
-    .select('id, business_name, website, email, stage, team_size, tools, bottleneck, goal, owner, ip, user_agent, plan, created_at')
-    .order('created_at', { ascending: false })
-    .limit(500)
+  const selfGuided = await selectSelfGuided(client)
 
-  if (selfGuidedError) throw selfGuidedError
-
-  const rows = leads ?? []
+  const rows = leads
   const cacheRows = cache ?? []
-  const selfGuidedRows = selfGuided ?? []
+  const selfGuidedRows = selfGuided
   const domainMap = new Map<string, {
     domain: string
     runs: number
@@ -288,6 +465,8 @@ export async function getAdminSnapshot() {
   const contactSubmits = rows.filter((row) => row.email && row.phone).length
   const selfGuidedPlans = selfGuidedRows.length
   const selfGuidedEmails = selfGuidedRows.filter((row) => row.email).length
+  const recapsSent =
+    rows.filter((row) => row.recap_sent_at).length + selfGuidedRows.filter((row) => row.recap_sent_at).length
 
   return {
     summary: {
@@ -297,6 +476,7 @@ export async function getAdminSnapshot() {
       submit_rate: domainRuns ? contactSubmits / domainRuns : 0,
       cached_domains: cacheRows.length,
       repeat_runs: domainRuns - uniqueDomains,
+      recaps_sent: recapsSent,
       self_guided_plans: selfGuidedPlans,
       self_guided_emails: selfGuidedEmails,
       self_guided_email_rate: selfGuidedPlans ? selfGuidedEmails / selfGuidedPlans : 0,

@@ -214,6 +214,14 @@
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Unable to build plan');
       render(data);
+      if (data.recap === 'sent') {
+        const note = document.createElement('div');
+        note.className = 'small';
+        note.style.marginTop = '16px';
+        note.style.color = 'var(--signal)';
+        note.textContent = 'A copy of this plan is on its way to your inbox.';
+        output.appendChild(note);
+      }
     } catch (err) {
       empty.style.display = 'grid';
       error.textContent = err.message || 'Unable to build plan';

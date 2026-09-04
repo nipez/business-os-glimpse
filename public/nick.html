@@ -175,6 +175,43 @@
 
   const cleanUrl = value => (value||'').trim().replace(/^https?:\/\//i,'').replace(/^www\./i,'').split(/[/?#]/)[0].replace(/\/+$/,'').toLowerCase();
   const esc = value => (value||'').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  function recapMessage(recap, kind){
+    if(kind==='blocked'){
+      if(recap==='sent') return '<span class="ok">Check your inbox. The domain is logged and I sent the next step.</span>';
+      return '<span class="ok">Got it. The domain is logged.</span>';
+    }
+    if(recap==='sent') return '<span class="ok">Check your inbox. The plan is on its way and I will follow up from here.</span>';
+    if(recap==='skipped') return '<span class="ok">This plan was already sent to that inbox. I will follow up from here.</span>';
+    return '<span class="ok">Got it. The plan is logged and ready for follow-up.</span>';
+  }
+  async function submitLead(form, payload, onSuccess){
+    const email = (payload.email||'').trim();
+    const phone = (payload.phone||'').trim();
+    if(!email || !phone) return;
+    const btn = form.querySelector('button');
+    const original = btn ? btn.textContent : '';
+    if(btn){ btn.disabled = true; btn.textContent = 'Sending...'; }
+    try{
+      const r = await fetch('/api/lead', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({...payload, email, phone})
+      });
+      const d = await r.json().catch(()=>null);
+      if(!r.ok) throw new Error(d && d.error ? d.error : 'Unable to send');
+      onSuccess(d && d.recap);
+    }catch(err){
+      if(btn){ btn.disabled = false; btn.textContent = original; }
+      const note = form.parentElement?.querySelector('.plan-error') || document.createElement('div');
+      note.className = 'plan-error';
+      note.style.color = '#E9A23B';
+      note.style.marginTop = '10px';
+      note.style.fontFamily = 'var(--mono)';
+      note.style.fontSize = '.78rem';
+      note.textContent = err.message || 'Unable to send';
+      if(!note.parentElement) form.after(note);
+    }
+  }
   const wait = ms => new Promise(resolve => setTimeout(resolve, reduce ? 0 : ms));
 
   function fallbackFor(url){
@@ -245,15 +282,10 @@
     requestAnimationFrame(()=>result.classList.add('in'));
     document.getElementById('leadForm')?.addEventListener('submit', event => {
       event.preventDefault();
-      const email = (document.getElementById('email').value || '').trim();
-      const phone = (document.getElementById('phone').value || '').trim();
-      if(!email || !phone) return;
-      fetch('/api/lead', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({url, email, phone, glimpse:report})
-      }).catch(()=>{});
-      document.getElementById('lead').innerHTML = '<span class="ok">Got it. The plan is logged and ready for follow-up.</span>';
+      const form = event.currentTarget;
+      submitLead(form, {url, email: document.getElementById('email').value, phone: document.getElementById('phone').value, glimpse:report}, recap => {
+        document.getElementById('lead').innerHTML = recapMessage(recap, 'plan');
+      });
     });
     foot.textContent = sample ? 'Live read did not complete. Send the domain and I can review it directly.' : 'Generated live for this URL.';
   }
@@ -267,15 +299,10 @@
     requestAnimationFrame(()=>result.classList.add('in'));
     document.getElementById('leadForm')?.addEventListener('submit', event => {
       event.preventDefault();
-      const email = (document.getElementById('email').value || '').trim();
-      const phone = (document.getElementById('phone').value || '').trim();
-      if(!email || !phone) return;
-      fetch('/api/lead', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({url, email, phone, glimpse:{blocked:true, reason:'scan_limit_reached'}})
-      }).catch(()=>{});
-      document.getElementById('lead').innerHTML = '<span class="ok">Got it. The domain is logged.</span>';
+      const form = event.currentTarget;
+      submitLead(form, {url, email: document.getElementById('email').value, phone: document.getElementById('phone').value, glimpse:{blocked:true, reason:'scan_limit_reached'}}, recap => {
+        document.getElementById('lead').innerHTML = recapMessage(recap, 'blocked');
+      });
     });
   }
 
